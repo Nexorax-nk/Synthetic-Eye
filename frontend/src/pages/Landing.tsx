@@ -1,143 +1,122 @@
-import { Eye, Activity, Shield, Zap, ArrowRight, CheckCircle2, Sparkles, TrendingUp, Clock } from "lucide-react";
+import { Eye, Activity, Shield, Zap, ArrowRight, CheckCircle2, Sparkles, TrendingUp, Clock, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-gray-100 overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500" />
-      </div>
-
+    <div className="min-h-screen bg-black text-gray-100 overflow-hidden">
       {/* Navigation */}
-      <nav className="relative z-10 border-b border-white/5 backdrop-blur-xl bg-[#0a0a0f]/80">
+      <nav className="relative z-50 border-b border-white/5 backdrop-blur-xl bg-black/80">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <Eye className="h-6 w-6 text-white" />
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <Eye className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-white">Third Eye</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Third Eye
-            </span>
+            <div className="hidden md:flex items-center gap-6 text-sm text-gray-400">
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#product" className="hover:text-white transition-colors">Product</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            </div>
           </div>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="px-6 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 text-sm font-medium"
-          >
-            Sign In
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="px-6 py-2 rounded-lg bg-white text-black text-sm font-semibold hover:bg-gray-200 transition-colors"
+            >
+              Get Started
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative z-10 container mx-auto px-6 pt-32 pb-20">
-        <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-8 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-purple-400" />
-            <span className="text-sm text-purple-300">Automated Synthetic Monitoring</span>
-          </div>
-          
-          <h1 className="text-7xl md:text-8xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-              Watch Everything.
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              Miss Nothing.
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-400 mb-4 max-w-3xl font-light leading-relaxed">
-            Automated agent that monitors your critical user flows 24/7
-          </p>
-          <p className="text-lg text-gray-500 mb-12">
-            Real-time insights. Proactive alerts. Zero blind spots.
-          </p>
+      {/* Hero Section with Glowing Product */}
+      <div className="relative">
+        {/* Dramatic Glow Effect */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-[600px] bg-gradient-to-b from-transparent via-blue-500 to-transparent opacity-50 blur-sm" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-[600px] bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-30" />
+        
+        <div className="container mx-auto px-6 pt-32 pb-20">
+          <div className="flex flex-col items-center text-center max-w-4xl mx-auto relative z-10">
+            <h1 className="text-7xl md:text-8xl font-bold mb-6 leading-tight">
+              <span className="text-white">
+                Automated Agent
+              </span>
+              <br />
+              <span className="text-white">
+                for your teams
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-400 mb-8 max-w-2xl">
+              Third Eye monitors your critical user flows 24/7 so you don't have to. 
+              Real-time insights, proactive alerts, and full observability.
+            </p>
 
-          <div className="flex gap-4">
             <button
               onClick={() => navigate("/dashboard")}
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-3 hover:scale-105"
+              className="group px-8 py-4 bg-white text-black rounded-lg font-semibold text-lg hover:bg-gray-200 transition-all duration-300 flex items-center gap-3"
             >
-              Get Started
+              Get Started Free
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="px-8 py-4 rounded-2xl font-semibold text-lg border border-white/10 hover:bg-white/5 transition-all duration-300 backdrop-blur-sm"
-            >
-              View Demo
-            </button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 mt-20 max-w-3xl w-full">
-            <StatCard icon={<TrendingUp />} value="99.9%" label="Uptime SLA" />
-            <StatCard icon={<Clock />} value="<100ms" label="Alert Latency" />
-            <StatCard icon={<Activity />} value="24/7" label="Monitoring" />
-          </div>
-        </div>
-      </div>
-
-      {/* Features Grid */}
-      <div className="relative z-10 container mx-auto px-6 py-32">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Built for Modern Teams
-          </h2>
-          <p className="text-gray-400 text-lg">Everything you need to keep your services running smoothly</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          <FeatureCard
-            icon={<Activity className="h-8 w-8 text-purple-400" />}
-            title="Real-time Monitoring"
-            description="Track user flows and performance metrics in real-time with automated Playwright-based synthetic monitoring"
-            gradient="from-purple-500/10 to-purple-500/5"
-          />
-          <FeatureCard
-            icon={<Shield className="h-8 w-8 text-pink-400" />}
-            title="Proactive Alerts"
-            description="Get notified before your users experience issues with intelligent anomaly detection and SLA tracking"
-            gradient="from-pink-500/10 to-pink-500/5"
-          />
-          <FeatureCard
-            icon={<Zap className="h-8 w-8 text-blue-400" />}
-            title="Full Observability"
-            description="Visualize metrics, traces, and logs with comprehensive dashboards and step-by-step breakdowns"
-            gradient="from-blue-500/10 to-blue-500/5"
-          />
-        </div>
-      </div>
-
-      {/* Benefits Section */}
-      <div className="relative z-10 container mx-auto px-6 py-32">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Why Third Eye?
-              </h2>
-              <p className="text-gray-400 text-lg mb-8">
-                Built with the latest observability standards and designed for teams that ship fast
-              </p>
-              <div className="space-y-4">
-                <BenefitItem text="Automated Playwright-based synthetic monitoring" />
-                <BenefitItem text="Full observability with metrics, traces, and logs" />
-                <BenefitItem text="Screenshot evidence for every incident" />
-                <BenefitItem text="Step-by-step latency breakdown" />
-                <BenefitItem text="SLA error budget tracking" />
-                <BenefitItem text="Zero configuration required" />
-              </div>
-            </div>
-            <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 backdrop-blur-xl p-8 shadow-2xl">
-                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-[#0f1117] to-[#141821] border border-white/5 flex items-center justify-center">
-                  <Eye className="h-32 w-32 text-purple-400/30" />
+          {/* Product Showcase with Glow */}
+          <div className="relative mt-20 max-w-6xl mx-auto">
+            {/* Glow effects around product */}
+            <div className="absolute -inset-20 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+            
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl backdrop-blur-xl bg-gradient-to-br from-white/5 to-white/[0.02]">
+              {/* Mock Dashboard Screenshot */}
+              <div className="aspect-video bg-gradient-to-br from-gray-900 to-black p-8">
+                <div className="grid grid-cols-3 gap-4 h-full">
+                  {/* Metrics Column */}
+                  <div className="space-y-4">
+                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                      <div className="text-xs text-purple-400 mb-2">METRICS</div>
+                      <div className="text-2xl font-bold text-white">99.9%</div>
+                      <div className="text-xs text-gray-400">Availability</div>
+                    </div>
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <div className="text-xs text-green-400 mb-2">SUCCESS RATE</div>
+                      <div className="text-2xl font-bold text-white">98.5%</div>
+                    </div>
+                  </div>
+                  
+                  {/* Traces Column */}
+                  <div className="space-y-4">
+                    <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
+                      <div className="text-xs text-pink-400 mb-2">TRACES</div>
+                      <div className="h-20 flex items-end gap-1">
+                        {[40, 60, 45, 80, 55, 70, 50].map((h, i) => (
+                          <div key={i} className="flex-1 bg-pink-500/50 rounded-t" style={{ height: `${h}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Logs Column */}
+                  <div className="space-y-2">
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                      <div className="text-xs text-blue-400 mb-2">LOGS</div>
+                      <div className="space-y-1 text-xs text-gray-400">
+                        <div className="flex gap-2"><span className="text-green-400">✓</span> Login flow passed</div>
+                        <div className="flex gap-2"><span className="text-red-400">✗</span> Checkout timeout</div>
+                        <div className="flex gap-2"><span className="text-green-400">✓</span> Cart updated</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -145,41 +124,153 @@ const Landing = () => {
         </div>
       </div>
 
+      {/* Features Section - Dark Background */}
+      <div className="bg-black py-32 relative">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Unmatched observability
+            </h2>
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              Third Eye is a complete, real-time synthetic monitoring platform that provides 
+              full observability for your critical user flows.
+            </p>
+          </div>
+
+          {/* Feature Grid */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <FeatureShowcase
+              title="Real-time Monitoring"
+              description="Track user flows with Playwright-based synthetic monitoring"
+              image={
+                <div className="bg-gradient-to-br from-purple-900/50 to-black rounded-xl p-6 border border-purple-500/30">
+                  <Activity className="h-16 w-16 text-purple-400 mb-4" />
+                  <div className="space-y-2">
+                    <div className="h-2 bg-purple-500/30 rounded w-3/4" />
+                    <div className="h-2 bg-purple-500/20 rounded w-1/2" />
+                  </div>
+                </div>
+              }
+            />
+            
+            <FeatureShowcase
+              title="Incident Detection"
+              description="Get notified before your users experience issues"
+              image={
+                <div className="bg-gradient-to-br from-pink-900/50 to-black rounded-xl p-6 border border-pink-500/30">
+                  <Shield className="h-16 w-16 text-pink-400 mb-4" />
+                  <div className="space-y-2">
+                    <div className="h-2 bg-pink-500/30 rounded w-2/3" />
+                    <div className="h-2 bg-pink-500/20 rounded w-1/3" />
+                  </div>
+                </div>
+              }
+            />
+            
+            <FeatureShowcase
+              title="Step Breakdown"
+              description="Detailed latency analysis for every user interaction"
+              image={
+                <div className="bg-gradient-to-br from-blue-900/50 to-black rounded-xl p-6 border border-blue-500/30">
+                  <TrendingUp className="h-16 w-16 text-blue-400 mb-4" />
+                  <div className="flex gap-2 items-end h-20">
+                    {[60, 80, 45, 90, 70].map((h, i) => (
+                      <div key={i} className="flex-1 bg-blue-500/40 rounded-t" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                </div>
+              }
+            />
+            
+            <FeatureShowcase
+              title="Screenshot Evidence"
+              description="Visual proof of every incident with automated captures"
+              image={
+                <div className="relative bg-gradient-to-br from-orange-900/50 to-black rounded-xl p-6 border border-orange-500/30 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-purple-500/20 to-blue-500/20 blur-2xl" />
+                  <div className="relative">
+                    <Zap className="h-16 w-16 text-orange-400 mb-4" />
+                    <div className="text-sm text-gray-400">Automated captures</div>
+                  </div>
+                </div>
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Feature Icons Grid */}
+      <div className="bg-black py-32 border-t border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+            <FeatureIcon
+              icon={<Activity className="h-8 w-8" />}
+              title="Real-time sync"
+              description="Monitor user flows with zero latency"
+            />
+            <FeatureIcon
+              icon={<Shield className="h-8 w-8" />}
+              title="Proactive alerts"
+              description="Get notified before issues impact users"
+            />
+            <FeatureIcon
+              icon={<TrendingUp className="h-8 w-8" />}
+              title="Advanced analytics"
+              description="Deep insights into performance trends"
+            />
+            <FeatureIcon
+              icon={<Clock className="h-8 w-8" />}
+              title="SLA tracking"
+              description="Monitor error budgets in real-time"
+            />
+            <FeatureIcon
+              icon={<Zap className="h-8 w-8" />}
+              title="Instant insights"
+              description="Visualize metrics, traces, and logs"
+            />
+            <FeatureIcon
+              icon={<CheckCircle2 className="h-8 w-8" />}
+              title="Zero config"
+              description="Start monitoring in minutes"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* CTA Section */}
-      <div className="relative z-10 container mx-auto px-6 py-32">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="relative rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/10 backdrop-blur-xl p-16 shadow-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5" />
-            <div className="relative z-10">
-              <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Ready to see everything?
-              </h2>
-              <p className="text-gray-400 text-xl mb-10 max-w-2xl mx-auto">
-                Start monitoring your critical user flows in minutes. No credit card required.
-              </p>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105"
-              >
-                View Dashboard
-              </button>
-            </div>
+      <div className="bg-black py-32 border-t border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Ready to see everything?
+            </h2>
+            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+              Start monitoring your critical user flows in minutes. No credit card required.
+            </p>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="px-10 py-5 bg-white text-black rounded-lg font-semibold text-lg hover:bg-gray-200 transition-all duration-300 inline-flex items-center gap-3"
+            >
+              View Dashboard
+              <Play className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 backdrop-blur-xl bg-[#0a0a0f]/80">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
+      <footer className="border-t border-white/5 bg-black">
+        <div className="container mx-auto px-6 py-12">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <Eye className="h-5 w-5 text-purple-400" />
               <span className="text-sm text-gray-500">© 2026 Third Eye. All rights reserved.</span>
             </div>
-            <div className="flex gap-6 text-sm text-gray-500">
+            <div className="flex gap-8 text-sm text-gray-500">
               <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
               <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
-              <a href="#" className="hover:text-gray-300 transition-colors">Docs</a>
+              <a href="#" className="hover:text-gray-300 transition-colors">Documentation</a>
+              <a href="#" className="hover:text-gray-300 transition-colors">Support</a>
             </div>
           </div>
         </div>
@@ -188,33 +279,26 @@ const Landing = () => {
   );
 };
 
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
-  <div className="flex flex-col items-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
-    <div className="text-purple-400 mb-2">{icon}</div>
-    <div className="text-3xl font-bold mb-1">{value}</div>
-    <div className="text-sm text-gray-500">{label}</div>
-  </div>
-);
-
-const FeatureCard = ({ icon, title, description, gradient }: { icon: React.ReactNode; title: string; description: string; gradient: string }) => (
-  <div className={`relative group rounded-2xl bg-gradient-to-br ${gradient} border border-white/10 p-8 hover:border-white/20 transition-all duration-300 backdrop-blur-sm hover:scale-105`}>
-    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-    <div className="relative z-10">
-      <div className="mb-6 w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-        {icon}
+const FeatureShowcase = ({ title, description, image }: { title: string; description: string; image: React.ReactNode }) => (
+  <div className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-500">
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="relative p-8">
+      <div className="mb-6 aspect-video rounded-xl overflow-hidden">
+        {image}
       </div>
-      <h3 className="text-2xl font-semibold mb-4">{title}</h3>
+      <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
       <p className="text-gray-400 leading-relaxed">{description}</p>
     </div>
   </div>
 );
 
-const BenefitItem = ({ text }: { text: string }) => (
-  <div className="flex items-start gap-4 group">
-    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/10 border border-green-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform">
-      <CheckCircle2 className="h-4 w-4 text-green-400" />
+const FeatureIcon = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
+  <div className="text-center">
+    <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+      {icon}
     </div>
-    <p className="text-gray-300 group-hover:text-white transition-colors">{text}</p>
+    <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+    <p className="text-sm text-gray-400">{description}</p>
   </div>
 );
 
