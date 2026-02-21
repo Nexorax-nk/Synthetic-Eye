@@ -8,15 +8,27 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
+let GLOBAL_CHAOS = false;
+
+app.post('/api/chaos', (req, res) => {
+    GLOBAL_CHAOS = true;
+    console.log('💥 GLOBAL CHAOS INITIATED! Simulating 500 errors globally for 15s.');
+    setTimeout(() => {
+        GLOBAL_CHAOS = false;
+        console.log('✅ Global Chaos Resolved.');
+    }, 15000); // Chaos lasts 15 seconds
+    res.json({ status: "chaos activated" });
+});
+
 // Chaos Mode Middleware
 app.use((req, res, next) => {
-    const chaos = req.headers['x-chaos-trigger'];
+    const chaos = req.headers['x-chaos-trigger'] || (GLOBAL_CHAOS && req.path.startsWith('/api') && req.path !== '/api/chaos' ? 'crash' : null);
 
     if (chaos === 'latency') {
         console.log('⚠️ Chaos Mode: Injecting 10s latency');
         setTimeout(next, 10000);
-    } else if (chaos === 'crash' && req.path === '/api/auth/login') {
-        console.log('⚠️ Chaos Mode: Simulating 500 Crash');
+    } else if (chaos === 'crash') {
+        console.log(`⚠️ Chaos Mode: Simulating 500 Crash on ${req.path}`);
         res.status(500).json({ error: 'Internal Server Error (Chaos Mode)' });
     } else if (chaos === 'corrupt') {
         console.log('⚠️ Chaos Mode: Simulating Data Corruption');

@@ -2,9 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 @layer base {
-  body {
-    background-color: theme('colors.sre-bg');
-    color: white;
+  :root {
+    --background: 230 10% 11%;
+    --foreground: 210 20% 90%;
+
+    --card: 231 9% 15%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 231 9% 15%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 140 50% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 228 9% 20%;
+    --secondary-foreground: 210 20% 80%;
+
+    --muted: 230 10% 11%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 212 100% 67%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 352 75% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 9% 20%;
+    --input: 228 9% 20%;
+    --ring: 140 50% 35%;
+
+    --radius: 0.25rem;
+    /* Tighter radius for datadog look */
+
+    --sre-green: 152 69% 31%;
+    --sre-red: 352 75% 52%;
+    --sre-blue: 212 100% 67%;
+    --sre-orange: 30 90% 55%;
+    --sre-yellow: 45 90% 55%;
+    --sre-purple: 272 72% 47%;
+    --sre-pink: 320 80% 55%;
+    --sre-magenta: 350 89% 60%;
+
+    --sidebar-background: 215 20% 7%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 140 50% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 15% 14%;
+    --sidebar-accent-foreground: 210 20% 80%;
+    --sidebar-border: 215 15% 22%;
+    --sidebar-ring: 212 100% 67%;
   }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Pulse animation for status indicators */
+@keyframes pulse-green {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsla(var(--sre-green), 0.7);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px hsla(var(--sre-green), 0);
+  }
+}
+
+@keyframes pulse-red {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsla(var(--sre-red), 0.7);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px hsla(var(--sre-red), 0);
+  }
+}
+
+.pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+.pulse-red {
+  animation: pulse-red 1.5s infinite;
 }

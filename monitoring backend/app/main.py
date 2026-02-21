@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import dummy_target, monitoring
+from app.routers import monitoring
 
 app = FastAPI(title="Synthetic-Eye Engine")
 
@@ -14,7 +14,6 @@ app.add_middleware(
 )
 
 # Connect the routers
-app.include_router(dummy_target.router)
 app.include_router(monitoring.router)
 
 @app.get("/")

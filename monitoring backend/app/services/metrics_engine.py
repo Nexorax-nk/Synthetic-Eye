@@ -79,4 +79,4 @@ def get_latency_percentiles():
 
 def get_status_breakdown():
     if total_runs == 0: return {}
-    return {code: f"{round((count/total_runs)*100, 1)}%" for code, count in status_codes.items() if count > 0}
+    return {code: round((count/total_runs)*100, 1) for code, count in status_codes.items() if count > 0}
