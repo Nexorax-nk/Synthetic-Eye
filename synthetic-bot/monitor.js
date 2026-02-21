@@ -5,14 +5,14 @@ const crypto = require('crypto'); // For generating trace IDs
 // ⚙️ SRE CONFIGURATION
 // ==========================================
 const INGEST_API_URL = 'http://localhost:8000/api/ingest'; // Your FastAPI backend
-const TARGET_APP_URL = 'http://localhost:3000';            // Your dummy React app
+const TARGET_APP_URL = 'http://localhost:5173';            // Your dummy React app
 const SLA_TIMEOUT = 2000;                                  // Strict 2-second timeout for steps
 const REGION = 'aws-ap-south-1';                           // Edge node simulation
 const CYCLE_TIME_MS = 60000;                               // 60-second continuous loop
 
 async function runSyntheticFlow() {
     console.log(`\n🤖 [${new Date().toLocaleTimeString()}] Waking up. Starting 60-second patrol...`);
-    
+
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -51,29 +51,34 @@ async function runSyntheticFlow() {
         // ==========================================
         // THE USER JOURNEY (Browser Automation)
         // ==========================================
-        
+
         await executeStep('Load Site', async () => {
             await page.goto(TARGET_APP_URL, { waitUntil: 'domcontentloaded' });
         });
 
         await executeStep('Login', async () => {
-            await page.locator('#login-btn').click({ timeout: SLA_TIMEOUT });
+            await page.fill('[data-testid="email-input"]', 'admin@hack.com');
+            await page.fill('[data-testid="password-input"]', '12345');
+            await page.locator('[data-testid="login-btn"]').click({ timeout: SLA_TIMEOUT });
+            await page.waitForTimeout(500);
         });
 
         await executeStep('Add to Cart', async () => {
-            await page.locator('#add-cart-btn').click({ timeout: SLA_TIMEOUT });
+            await page.locator('button:has-text("Add to Cart")').first().click({ timeout: SLA_TIMEOUT });
         });
 
         await executeStep('Checkout', async () => {
-            await page.locator('#checkout-btn').click({ timeout: SLA_TIMEOUT });
-            await page.locator('#success-message').waitFor({ timeout: SLA_TIMEOUT });
+            await page.locator('[data-testid="nav-cart-btn"]').click({ timeout: SLA_TIMEOUT });
+            await page.waitForTimeout(500);
+            await page.locator('[data-testid="checkout-btn"]').click({ timeout: SLA_TIMEOUT });
+            await page.waitForTimeout(1000); // Simulate order processing success wait
         });
 
         // ==========================================
         // SUCCESS HANDLING
         // ==========================================
         const totalLatency = Date.now() - startTime;
-        
+
         const successPayload = {
             timestamp: new Date().toISOString(),
             flow_name: "Primary_Checkout_Flow",
@@ -99,10 +104,10 @@ async function runSyntheticFlow() {
 
     } catch (error) {
         const totalLatency = Date.now() - startTime;
-        
+
         // If Playwright timed out before the server even responded, it's a Gateway Timeout
         if (httpStatusCode === 200 && error.message.includes('Timeout')) {
-            httpStatusCode = 504; 
+            httpStatusCode = 504;
         }
 
         // 1. Capture the visual evidence (Base64 format for the React UI)

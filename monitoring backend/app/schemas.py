@@ -18,3 +18,4 @@ class BotTelemetry(BaseModel):
     error_type: Optional[str] = None      
     error_stack: Optional[str] = None    
     screenshot_base64: Optional[str] = None
+    trace_id: Optional[str] = None

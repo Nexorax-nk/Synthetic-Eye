@@ -4,10 +4,18 @@ import { api } from '../api/api';
 export default function Navbar({ cartCount, onGoCart, searchQuery, onSearch, onLogoClick, onAccountClick }) {
     const [isChaos, setIsChaos] = useState(api.chaos);
 
-    const toggleChaos = () => {
+    const toggleChaos = async () => {
         const newChaos = !isChaos;
         setIsChaos(newChaos);
         api.chaos = newChaos;
+
+        if (newChaos) {
+            try {
+                await fetch('http://localhost:5000/api/chaos', { method: 'POST' });
+            } catch (e) {
+                console.error("Failed to trigger global chaos", e);
+            }
+        }
     };
 
     return (

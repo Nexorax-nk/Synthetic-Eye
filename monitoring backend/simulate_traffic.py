@@ -33,7 +33,8 @@ def random_failure_payload():
             {"step_name": "Action", "latency_ms": latency * 0.9, "status": "failed"},
         ],
         "error_type": "TimeoutError",
-        "error_stack": "TimeoutError: Navigation timeout exceeded.\n  at ElementHandle.click()"
+        "error_stack": "TimeoutError: Navigation timeout exceeded.\n  at ElementHandle.click()",
+        "trace_id": f"tx-sim-{random.randint(1000,9999)}"
     }
 
 print("Starting to stream metrics to the dashboard...")

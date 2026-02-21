@@ -28,11 +28,12 @@ export function IncidentPanel({ incidents }: Props) {
 
           <p className="text-[10px] font-mono text-secondary-foreground mb-2">
             <span className="text-muted-foreground">Flow:</span> {inc.flow_name}
+            {inc.trace_id ? <span className="ml-2"><span className="text-muted-foreground">Trace:</span> {inc.trace_id}</span> : null}
             <span className="ml-2 text-muted-foreground">Status:</span> <span className="text-sre-red">{inc.http_status_code}</span>
           </p>
 
           {/* Error Stack */}
-          {inc.error_stack && (
+          {inc.error_stack && typeof inc.error_stack === 'string' && (
             <div className="mb-1">
               <pre className="bg-[#111216] border border-border/50 rounded p-2 text-[9px] text-sre-red/80 font-mono overflow-x-auto whitespace-pre-wrap max-h-24 overflow-y-auto">
                 {inc.error_stack.split('\n')[0]} {/* Only show first line for density */}

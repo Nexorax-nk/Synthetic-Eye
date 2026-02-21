@@ -42,6 +42,7 @@ export interface Incident {
   error_type?: string;
   error_stack?: string;
   screenshot_base64?: string;
+  trace_id?: string;
 }
 
 export interface HttpStatusBreakdown {

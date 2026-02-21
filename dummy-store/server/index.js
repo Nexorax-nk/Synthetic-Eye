@@ -12,11 +12,11 @@ let GLOBAL_CHAOS = false;
 
 app.post('/api/chaos', (req, res) => {
     GLOBAL_CHAOS = true;
-    console.log('💥 GLOBAL CHAOS INITIATED! Simulating 500 errors globally for 15s.');
+    console.log('💥 GLOBAL CHAOS INITIATED! Simulating 500 errors globally for 120s.');
     setTimeout(() => {
         GLOBAL_CHAOS = false;
         console.log('✅ Global Chaos Resolved.');
-    }, 15000); // Chaos lasts 15 seconds
+    }, 120000); // Chaos lasts 120 seconds
     res.json({ status: "chaos activated" });
 });
 

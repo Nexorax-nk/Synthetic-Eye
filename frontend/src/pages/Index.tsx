@@ -15,7 +15,7 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
       <Sidebar />
-      
+
       <div className="flex-1 p-6">
         {/* Top Bar */}
         <header className="flex items-center justify-between mb-6 bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-lg">
@@ -33,7 +33,6 @@ const Index = () => {
               </div>
             </div>
           </div>
-          <FaultButton />
         </header>
 
         {/* 3-Column Layout */}
