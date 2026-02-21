@@ -1,88 +1,246 @@
+import { useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
-import { Search, Filter, Download, AlertCircle, Info, CheckCircle, XCircle } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  AlertTriangle, 
+  Info, 
+  TerminalSquare, 
+  CheckCircle2, 
+  XCircle,
+  Copy,
+  Activity
+} from "lucide-react";
+import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 
-const Logs = () => {
-  const logs = [
-    { time: "23:45:12", level: "error", message: "Login flow failed: Timeout after 30s", source: "login-monitor" },
-    { time: "23:44:58", level: "warn", message: "High latency detected: 2.5s response time", source: "checkout-monitor" },
-    { time: "23:44:45", level: "info", message: "Monitor execution completed successfully", source: "search-monitor" },
-    { time: "23:44:30", level: "info", message: "Starting synthetic monitor run", source: "cart-monitor" },
-    { time: "23:44:15", level: "error", message: "API endpoint returned 500 status code", source: "payment-monitor" },
-    { time: "23:44:02", level: "warn", message: "Slow database query detected: 1.8s", source: "user-monitor" },
-    { time: "23:43:50", level: "info", message: "Screenshot captured successfully", source: "login-monitor" },
-    { time: "23:43:35", level: "success", message: "All health checks passed", source: "health-monitor" },
-  ];
+interface UnifiedLog {
+  id: string;
+  timestamp: Date;
+  level: "error" | "warn" | "info" | "success";
+  message: string;
+  source: string;
+  latency?: number;
+  traceId?: string;
+}
+
+export default function Logs() {
+  const { metrics } = useDashboardMetrics();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  // FIX 1: Changed "info" to "warn" so it matches our filter buttons perfectly
+  const [activeFilter, setActiveFilter] = useState<"all" | "error" | "success" | "warn">("all");
+  const [isLiveTail, setIsLiveTail] = useState(true);
+
+  const liveLogs = useMemo<UnifiedLog[]>(() => {
+    if (!metrics) return [];
+
+    const logs: UnifiedLog[] = [];
+
+    metrics.chart_data?.forEach((data, index) => {
+      logs.push({
+        id: `trace-${index}-${data.time}`,
+        timestamp: new Date(data.time),
+        level: data.status === "failed" ? "error" : "success",
+        message: data.status === "failed" 
+          ? `Playwright synthetic run failed SLA limit.` 
+          : `Playwright trace completed successfully.`,
+        source: "synthetic-engine",
+        latency: data.latency
+      });
+    });
+
+    metrics.incident_panel?.forEach((inc) => {
+      logs.push({
+        id: `inc-${inc.incident_id}`,
+        timestamp: new Date(inc.timestamp),
+        level: "error",
+        message: `[HTTP ${inc.http_status_code}] Flow '${inc.flow_name}' breached SLA constraints.`,
+        source: inc.region || "ap-south-1",
+        latency: inc.total_latency_ms,
+        traceId: inc.trace_id
+      });
+
+      if (inc.error_stack) {
+        logs.push({
+          id: `stack-${inc.incident_id}`,
+          timestamp: new Date(new Date(inc.timestamp).getTime() + 10),
+          level: "warn",
+          message: `Exception caught: ${inc.error_stack.split('\n')[0].substring(0, 100)}...`,
+          source: "playwright-worker",
+          traceId: inc.trace_id
+        });
+      }
+    });
+
+    return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }, [metrics]);
+
+  const filteredLogs = useMemo(() => {
+    return liveLogs.filter(log => {
+      const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            log.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            log.traceId?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter = activeFilter === "all" || log.level === activeFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [liveLogs, searchTerm, activeFilter]);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (!metrics) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#0a0a0f] text-white">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <TerminalSquare className="h-8 w-8 text-blue-500" />
+          <p className="text-sm font-mono tracking-widest text-gray-400">CONNECTING TO LOG STREAM...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar />
+    <div className="flex min-h-screen bg-[#0a0a0f] text-gray-100 font-sans">
+      <div className="hidden md:block border-r border-white/5 bg-black/20">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Logs</h1>
-          <p className="text-gray-400">Real-time monitoring logs and events</p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4 mb-6 shadow-xl">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search logs..."
-                className="w-full pl-12 pr-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-colors"
-              />
+      <div className="flex-1 overflow-hidden flex flex-col w-full">
+        
+        <div className="p-6 md:p-8 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight mb-1 flex items-center gap-2">
+                <TerminalSquare className="w-6 h-6 text-blue-400" />
+                Live Log Stream
+              </h1>
+              <p className="text-sm text-gray-400 font-mono">Real-time telemetry and execution output</p>
             </div>
-            <button className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </button>
-            <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2">
-              <Download className="h-5 w-5" />
-              Export
+            
+            <button 
+              onClick={() => setIsLiveTail(!isLiveTail)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded border text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                isLiveTail 
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]" 
+                  : "bg-white/5 text-gray-500 border-white/10"
+              }`}
+            >
+              {isLiveTail && <Activity className="w-3 h-3 animate-pulse" />}
+              Live Tail {isLiveTail ? "ON" : "OFF"}
             </button>
           </div>
         </div>
 
-        {/* Logs Table */}
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-xl font-bold text-white">Recent Logs</h2>
+        <div className="px-6 md:px-8 mb-4 flex flex-col md:flex-row gap-4 items-center">
+          <div className="flex-1 relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by trace ID, message, or source..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-[#121212] border border-white/10 rounded-lg text-sm text-white font-mono placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all shadow-inner"
+            />
           </div>
-          
-          <div className="font-mono text-sm">
-            {logs.map((log, idx) => (
-              <div key={idx} className="flex items-start gap-4 p-4 border-b border-white/5 hover:bg-white/5 transition-colors">
-                <span className="text-gray-500 whitespace-nowrap">{log.time}</span>
-                
-                <div className="flex items-center gap-2">
-                  {log.level === 'error' && <XCircle className="h-5 w-5 text-red-400" />}
-                  {log.level === 'warn' && <AlertCircle className="h-5 w-5 text-yellow-400" />}
-                  {log.level === 'info' && <Info className="h-5 w-5 text-blue-400" />}
-                  {log.level === 'success' && <CheckCircle className="h-5 w-5 text-green-400" />}
-                  
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                    log.level === 'error' ? 'bg-red-500/20 text-red-400' :
-                    log.level === 'warn' ? 'bg-yellow-500/20 text-yellow-400' :
-                    log.level === 'success' ? 'bg-green-500/20 text-green-400' :
-                    'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {log.level.toUpperCase()}
-                  </span>
-                </div>
-                
-                <span className="text-gray-300 flex-1">{log.message}</span>
-                
-                <span className="text-gray-500 text-xs whitespace-nowrap">{log.source}</span>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center bg-[#121212] border border-white/10 rounded-lg p-1">
+              {(["all", "error", "warn", "success"] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-3 py-1 rounded text-xs font-bold uppercase tracking-wider transition-colors ${
+                    activeFilter === filter 
+                      ? "bg-white/10 text-white shadow" 
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+            <button className="px-3 py-2 bg-[#121212] border border-white/10 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-white" title="Export Logs">
+              <Download className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 px-6 md:px-8 pb-8 overflow-hidden">
+          <div className="h-full bg-[#050505] border border-white/10 rounded-xl shadow-2xl overflow-y-auto font-mono text-[11px] leading-relaxed relative">
+            
+            {filteredLogs.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-gray-600">
+                No logs match your current filters.
               </div>
-            ))}
+            ) : (
+              <div className="divide-y divide-white/[0.02]">
+                {filteredLogs.map((log) => {
+                  const isError = log.level === "error";
+                  const isWarn = log.level === "warn";
+                  
+                  return (
+                    <div 
+                      key={log.id} 
+                      className={`flex items-start gap-4 px-4 py-2 hover:bg-white/[0.03] transition-colors group ${
+                        isError ? "bg-rose-500/[0.02]" : ""
+                      }`}
+                    >
+                      {/* FIX 2: Removed fractionalSecondDigits so it compiles on older TS setups */}
+                      <span className="text-gray-600 whitespace-nowrap shrink-0 mt-0.5">
+                        {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                      
+                      <span className={`shrink-0 w-14 font-bold ${
+                        isError ? "text-rose-500" :
+                        isWarn ? "text-amber-500" :
+                        log.level === "success" ? "text-emerald-500" : "text-blue-500"
+                      }`}>
+                        [{log.level.toUpperCase()}]
+                      </span>
+                      
+                      <div className="flex-1 flex flex-col md:flex-row md:items-start gap-2 min-w-0">
+                        <span className={`${isError ? "text-rose-100" : "text-gray-300"} break-words`}>
+                          {log.message}
+                        </span>
+                        
+                        <div className="flex flex-wrap items-center gap-2 mt-1 md:mt-0 shrink-0">
+                          {log.latency && (
+                            <span className={`px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] ${
+                              log.latency > 2000 ? "text-rose-400" : "text-gray-400"
+                            }`}>
+                              {log.latency}ms
+                            </span>
+                          )}
+                          {log.traceId && (
+                            <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[9px]">
+                              {log.traceId.split('-')[0]}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-gray-600 hidden lg:block w-32 truncate text-right">
+                          {log.source}
+                        </span>
+                        <button 
+                          onClick={() => copyToClipboard(JSON.stringify(log))}
+                          className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-white transition-opacity"
+                          title="Copy JSON"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Logs;
+}

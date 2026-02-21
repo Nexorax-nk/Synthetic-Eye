@@ -14,7 +14,7 @@ export interface SlaErrorBudget {
 export interface ChartDataPoint {
   time: string;
   latency: number;
-  status: "passed" | "failed";
+  status: "success" | "failed"; // Fixed to match our backend bot payload
 }
 
 export interface LatencyMetrics {
@@ -30,6 +30,12 @@ export interface StepBreakdown {
   status: string;
 }
 
+// --- NEW SRE INTERFACE ---
+export interface TriageAdvice {
+  action: string;
+  runbook_url: string;
+}
+
 export interface Incident {
   incident_id: string;
   severity: string;
@@ -43,10 +49,14 @@ export interface Incident {
   error_stack?: string;
   screenshot_base64?: string;
   trace_id?: string;
+  
+  // --- NEW SRE FIELDS ---
+  region?: string;
+  triage_advice?: TriageAdvice;
 }
 
 export interface HttpStatusBreakdown {
-  [statusCode: string]: number;
+  [statusCode: string]: number | string;
 }
 
 export interface DashboardMetrics {
