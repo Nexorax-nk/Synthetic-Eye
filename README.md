@@ -45,7 +45,8 @@ The project is organized as follows:
 
 The following diagram illustrates the workflow of Synthetic-Eye:
 
-![Workflow](attachment:image2)
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/2749c202-b743-4254-9d12-110c75d4a226" />
+
 
 1. **Playwright Bot**: Simulates user interactions with the e-commerce server.
 2. **E-commerce Server**: Processes user actions and sends data to the backend.
@@ -123,7 +124,7 @@ The following diagram illustrates the workflow of Synthetic-Eye:
 | <span style="color:magenta">Pavithra S</span>         | [Pavithra898](https://github.com/Pavithra898) |
 
 **Team Name**: **Espada**
-
+Thanks, Team! Huge shout-out to my awesome teammates & thanks for the brainstorming sessions, late-night fixes, and all the laughs along the way. Couldn’t have pulled this off without your energy, support, and dedication! 🚀💙
 ---
 
 ## License
