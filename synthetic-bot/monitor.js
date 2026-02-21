@@ -14,7 +14,7 @@ async function runSyntheticFlow() {
     console.log(`\n🤖 [${new Date().toLocaleTimeString()}] Waking up. Starting 60-second patrol...`);
 
     const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext();
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
     const page = await context.newPage();
 
     const traceId = `tx-${crypto.randomUUID().split('-')[0]}`;
@@ -111,7 +111,9 @@ async function runSyntheticFlow() {
         }
 
         // 1. Capture the visual evidence (Base64 format for the React UI)
-        const screenshotBuffer = await page.screenshot();
+        try { await page.waitForLoadState('networkidle', { timeout: 2000 }); } catch (e) { }
+        await page.waitForTimeout(1500); // Strict wait for React error overlay or blank state to settle
+        const screenshotBuffer = await page.screenshot({ fullPage: true });
         const screenshotBase64 = screenshotBuffer.toString('base64');
 
         const failurePayload = {

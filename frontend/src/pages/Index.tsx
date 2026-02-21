@@ -13,10 +13,12 @@ const Index = () => {
   const latestIncident = metrics.incident_panel[0] ?? null;
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar />
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0a0a0f]">
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
 
-      <div className="flex-1 p-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 w-full">
         {/* Top Bar */}
         <header className="flex items-center justify-between mb-6 bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-lg">
           <div className="flex items-center gap-4">
@@ -109,7 +111,6 @@ const Index = () => {
                           <tr key={code} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                             <td className={`py-2 font-bold ${parseInt(code) < 400 ? "text-green-400" : "text-red-400"}`}>{code}</td>
                             <td className="py-2 text-right text-gray-400">{pct.toFixed(1)}%</td>
-                            <td className="py-2 text-right text-gray-400">{Math.round(80 + Math.random() * 200)}ms</td>
                           </tr>
                         ))}
                     </tbody>

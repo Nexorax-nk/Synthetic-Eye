@@ -13,9 +13,7 @@ export function StepBreakdownTable({ steps }: Props) {
           <thead>
             <tr className="border-b border-border text-muted-foreground">
               <th className="text-left py-1.5 pr-2">Name</th>
-              <th className="text-right py-1.5 px-2">Pass</th>
-              <th className="text-right py-1.5 px-2">Fog latency</th>
-              <th className="text-right py-1.5 px-2">Trend</th>
+              <th className="text-right py-1.5 px-2">Latency</th>
               <th className="text-right py-1.5 pl-2">Status</th>
             </tr>
           </thead>
@@ -23,15 +21,13 @@ export function StepBreakdownTable({ steps }: Props) {
             {steps.map((step, i) => (
               <tr key={i} className="border-b border-border/50">
                 <td className="py-1.5 pr-2 text-foreground">{step.step_name}</td>
-                <td className="py-1.5 px-2 text-right text-muted-foreground">{Math.floor(Math.random() * 5) + 1}</td>
                 <td className="py-1.5 px-2 text-right text-muted-foreground">{step.latency_ms}ms</td>
-                <td className="py-1.5 px-2 text-right text-muted-foreground">{(Math.random() * 30 + 10).toFixed(1)}s</td>
                 <td className="py-1.5 pl-2 text-right">
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${step.status === "passed"
-                      ? "bg-sre-green/20 text-sre-green"
-                      : step.status === "failed"
-                        ? "bg-sre-red/20 text-sre-red"
-                        : "bg-muted text-muted-foreground"
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${step.status === "passed" || step.status === "success"
+                    ? "bg-sre-green/20 text-sre-green"
+                    : step.status === "failed"
+                      ? "bg-sre-red/20 text-sre-red"
+                      : "bg-muted text-muted-foreground"
                     }`}>
                     {step.status}
                   </span>
