@@ -114,7 +114,7 @@ async function runSyntheticFlow() {
             }
 
             // Assert success by ensuring the user reaches the catalog view
-            await page.waitForSelector('text=Our Products', { timeout: 3000 });
+            await page.waitForSelector('text=All Tech Products', { timeout: 3000 });
         });
 
         await executeStep('Add to Cart', async () => {
