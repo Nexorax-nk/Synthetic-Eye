@@ -59,9 +59,9 @@ async function runSyntheticFlow() {
     let httpStatusCode = 200; // Assume 200 OK unless network sniffing catches an error
 
     // --- NETWORK SNIFFER ---
-    // Listens to the network tab. If the checkout API fails, we catch the exact status code (500, 504)
+    // Listens to the network tab. Catch any 4xx or 5xx from our backend
     page.on('response', response => {
-        if (response.url().includes('/api/checkout')) {
+        if (response.url().includes('/api/') && response.status() >= 400) {
             httpStatusCode = response.status();
         }
     });
@@ -103,24 +103,52 @@ async function runSyntheticFlow() {
         await executeStep('Login', async () => {
             await page.fill('[data-testid="email-input"]', 'admin@hack.com');
             await page.fill('[data-testid="password-input"]', '12345');
-            await page.locator('[data-testid="login-btn"]').click({ timeout: SLA_TIMEOUT });
-            await page.waitForTimeout(500);
+
+            const [response] = await Promise.all([
+                page.waitForResponse(res => res.url().includes('/api/auth/login') && res.request().method() === 'POST', { timeout: SLA_TIMEOUT + 4000 }).catch(() => null),
+                page.locator('[data-testid="login-btn"]').click({ timeout: SLA_TIMEOUT })
+            ]);
+
+            if (response && !response.ok()) {
+                throw new Error(`Login failed with HTTP ${response.status()}`);
+            }
+
+            // Assert success by ensuring the user reaches the catalog view
+            await page.waitForSelector('text=Our Products', { timeout: 3000 });
         });
 
         await executeStep('Add to Cart', async () => {
             await page.locator('button:has-text("Add to Cart")').first().waitFor({ timeout: 4000 });
-            await page.locator('button:has-text("Add to Cart")').first().click({ timeout: SLA_TIMEOUT });
-            // Wait for the cart POST to resolve so we know if latency impacted it
-            await page.waitForResponse(res => res.url().includes('/api/cart') && res.request().method() === 'POST', { timeout: 4000 });
+
+            const [response] = await Promise.all([
+                page.waitForResponse(res => res.url().includes('/api/cart') && res.request().method() === 'POST', { timeout: SLA_TIMEOUT + 4000 }).catch(() => null),
+                page.locator('button:has-text("Add to Cart")').first().click({ timeout: SLA_TIMEOUT })
+            ]);
+
+            if (response && !response.ok()) {
+                throw new Error(`Add to Cart failed with HTTP ${response.status()}`);
+            }
+
+            // Wait a moment for cart bubble to update
+            await page.waitForTimeout(500);
         });
 
         await executeStep('Checkout', async () => {
             await page.locator('[data-testid="nav-cart-btn"]').click({ timeout: SLA_TIMEOUT });
-            await page.waitForTimeout(500);
-            await page.locator('[data-testid="checkout-btn"]').click({ timeout: SLA_TIMEOUT });
 
-            // The golden rule: We must assert the success screen. If our API crashed or timed out, 
-            // the success text won't render, and we will finally throw a genuine timeout error here!
+            // Wait for cart page to render and checkout button to appear
+            await page.locator('[data-testid="checkout-btn"]').waitFor({ timeout: 3000 });
+
+            const [response] = await Promise.all([
+                page.waitForResponse(res => res.url().includes('/api/orders') && res.request().method() === 'POST', { timeout: SLA_TIMEOUT + 4000 }).catch(() => null),
+                page.locator('[data-testid="checkout-btn"]').click({ timeout: SLA_TIMEOUT })
+            ]);
+
+            if (response && !response.ok()) {
+                throw new Error(`Checkout failed with HTTP ${response.status()}`);
+            }
+
+            // The golden rule: We must assert the success screen. 
             await page.waitForSelector('text=Order Successful', { timeout: 3000 });
             await page.waitForTimeout(500);
         });
