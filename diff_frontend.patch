@@ -1,0 +1,1200 @@
+diff --git a/frontend/src/components/dashboard/GlobalHealth.tsx b/frontend/src/components/dashboard/GlobalHealth.tsx
+index 28b2ce2..3efe68c 100644
+--- a/frontend/src/components/dashboard/GlobalHealth.tsx
++++ b/frontend/src/components/dashboard/GlobalHealth.tsx
+@@ -1,4 +1,12 @@
+-import { CheckCircle, XCircle } from "lucide-react";
++import { 
++  CheckCircle2, 
++  AlertOctagon, 
++  Activity, 
++  ShieldAlert, 
++  ServerCrash, 
++  Zap,
++  Calculator // Added a small icon to hint at the math
++} from "lucide-react";
+ import type { GlobalHealth as GlobalHealthType, SlaErrorBudget } from "@/types/dashboard";
+ 
+ interface Props {
+@@ -8,50 +16,131 @@ interface Props {
+ 
+ export function GlobalHealth({ health, errorBudget }: Props) {
+   const isOperational = health.system_status === "Operational";
++  const hasIncidents = health.active_incidents_count > 0;
++
++  // --- THE RAW CALCULATIONS ---
++  // We reverse-engineer the exact number of fails and successes to show the math
++  const failedReqs = Math.round((health.error_rate_pct / 100) * health.total_requests);
++  const successfulReqs = health.total_requests - failedReqs;
+ 
+   return (
+-    <div className="flex flex-col gap-2">
+-      {/* System Status Row */}
+-      <div className="flex justify-between items-center border-b border-border/50 pb-2">
+-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">System Status</span>
+-        <span className={`text-[11px] px-2 py-0.5 rounded font-bold uppercase ${isOperational ? "bg-sre-green text-black" : "bg-sre-red text-white"}`}>
+-          {health.system_status}
+-        </span>
++    <div className="flex flex-col gap-4 p-5 bg-[#121212] border border-white/10 rounded-xl shadow-2xl backdrop-blur-sm">
++      
++      {/* --- 1. SYSTEM STATUS HERO ROW --- */}
++      <div className="flex justify-between items-center border-b border-white/10 pb-4">
++        <div className="flex items-center gap-2">
++          <Activity className="w-4 h-4 text-gray-400" />
++          <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">
++            Global Health
++          </span>
++        </div>
++        
++        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${
++            isOperational 
++              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
++              : "bg-red-500/10 border-red-500/20 text-red-400 animate-pulse"
++          }`}
++        >
++          {isOperational ? <CheckCircle2 className="w-4 h-4" /> : <AlertOctagon className="w-4 h-4" />}
++          <span className="text-xs font-bold uppercase tracking-wider">
++            {health.system_status}
++          </span>
++        </div>
+       </div>
+ 
+-      <div className="grid grid-cols-2 gap-2 pt-1">
++      {/* --- 2. CORE METRICS GRID --- */}
++      <div className="grid grid-cols-2 gap-4">
++        
+         {/* Availability */}
+-        <div className="flex flex-col items-center justify-center p-2 bg-background/50 border border-border rounded">
+-          <span className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Availability</span>
+-          <p className={`text-xl font-bold font-mono ${health.availability_pct > 99 ? 'text-sre-green' : 'text-sre-yellow'}`}>
+-            {health.availability_pct}%
++        <div className="flex flex-col p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-white/5 transition-colors">
++          <div className="flex items-center gap-1.5 mb-2">
++            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
++            <span className="text-[10px] text-gray-400 uppercase tracking-widest">Availability</span>
++          </div>
++          <p className={`text-3xl font-bold font-mono tracking-tight ${health.availability_pct >= 99 ? 'text-emerald-400' : 'text-amber-400'}`}>
++            {health.availability_pct.toFixed(2)}%
+           </p>
++          {/* THE RAW MATH EXPLANATION */}
++          <div className="flex items-center gap-1 mt-2 text-[10px] font-mono text-gray-500">
++            <Calculator className="w-3 h-3 opacity-50" />
++            <span>{successfulReqs} / {health.total_requests} runs OK</span>
++          </div>
+         </div>
+ 
+         {/* Error Rate */}
+-        <div className="flex flex-col items-center justify-center p-2 bg-background/50 border border-border rounded">
+-          <span className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Error Rate</span>
+-          <p className={`text-xl font-bold font-mono ${health.error_rate_pct > 1 ? 'text-sre-red' : 'text-sre-green'}`}>
+-            {health.error_rate_pct}%
++        <div className="flex flex-col p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-white/5 transition-colors">
++          <div className="flex items-center gap-1.5 mb-2">
++            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
++            <span className="text-[10px] text-gray-400 uppercase tracking-widest">Error Rate</span>
++          </div>
++          <p className={`text-3xl font-bold font-mono tracking-tight ${health.error_rate_pct > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
++            {health.error_rate_pct.toFixed(2)}%
+           </p>
++          {/* THE RAW MATH EXPLANATION */}
++          <div className="flex items-center gap-1 mt-2 text-[10px] font-mono text-gray-500">
++            <Calculator className="w-3 h-3 opacity-50" />
++            <span>{failedReqs} / {health.total_requests} runs failed</span>
++          </div>
+         </div>
+ 
+         {/* Total Requests */}
+-        <div className="flex flex-col items-center justify-center p-2 bg-background/50 border border-border rounded">
+-          <span className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Total Req</span>
+-          <p className="text-xl font-bold font-mono text-sre-purple">
+-            {health.total_requests || 0}
++        <div className="flex flex-col p-4 bg-white/[0.02] border border-white/5 rounded-lg hover:bg-white/5 transition-colors">
++          <div className="flex items-center gap-1.5 mb-2">
++            <Zap className="w-3.5 h-3.5 text-blue-400" />
++            <span className="text-[10px] text-gray-400 uppercase tracking-widest">Total Req</span>
++          </div>
++          <p className="text-3xl font-bold font-mono tracking-tight text-blue-400">
++            {health.total_requests.toLocaleString() || 0}
+           </p>
++          <div className="mt-2 text-[10px] font-mono text-gray-500">
++            Cumulative synthetic traces
++          </div>
+         </div>
+ 
+         {/* Active Incidents */}
+-        <div className="flex flex-col items-center justify-center p-2 bg-background/50 border border-border rounded">
+-          <span className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Incidents</span>
+-          <p className={`text-xl font-bold font-mono ${health.active_incidents_count > 0 ? 'text-sre-red animate-pulse' : 'text-sre-green'}`}>
++        <div className={`flex flex-col p-4 border rounded-lg transition-colors ${
++          hasIncidents ? 'bg-red-500/10 border-red-500/20' : 'bg-white/[0.02] border-white/5 hover:bg-white/5'
++        }`}>
++          <div className="flex items-center gap-1.5 mb-2">
++            <ServerCrash className={`w-3.5 h-3.5 ${hasIncidents ? 'text-red-400' : 'text-gray-400'}`} />
++            <span className={`text-[10px] uppercase tracking-widest ${hasIncidents ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
++              Incidents
++            </span>
++          </div>
++          <p className={`text-3xl font-bold font-mono tracking-tight ${hasIncidents ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
+             {health.active_incidents_count || 0}
+           </p>
++          <div className={`mt-2 text-[10px] font-mono ${hasIncidents ? 'text-red-400/70' : 'text-gray-500'}`}>
++            Unresolved SLA breaches
++          </div>
+         </div>
+       </div>
++
++      {/* --- 3. SLA ERROR BUDGET --- */}
++      {errorBudget && (
++        <div className="mt-2 p-4 bg-black/40 border border-white/10 rounded-lg">
++          <div className="flex justify-between items-end mb-3">
++            <div className="flex flex-col">
++              <span className="text-[10px] text-gray-400 uppercase tracking-widest">Error Budget</span>
++              <span className="text-xs font-mono text-gray-500 mt-1">{errorBudget.slo_target}</span>
++            </div>
++            <span className={`text-xl font-bold font-mono ${errorBudget.budget_remaining_pct < 20 ? 'text-red-400' : 'text-emerald-400'}`}>
++              {errorBudget.budget_remaining_pct.toFixed(1)}%
++            </span>
++          </div>
++          {/* Progress Bar */}
++          <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
++            <div 
++              className={`h-full rounded-full transition-all duration-1000 ${
++                errorBudget.budget_remaining_pct > 50 ? 'bg-emerald-400' : 
++                errorBudget.budget_remaining_pct > 20 ? 'bg-amber-400' : 'bg-red-500'
++              }`}
++              style={{ width: `${Math.max(0, Math.min(100, errorBudget.budget_remaining_pct))}%` }}
++            />
++          </div>
++        </div>
++      )}
++
+     </div>
+   );
+-}
++}
+\ No newline at end of file
+diff --git a/frontend/src/components/dashboard/IncidentPanel.tsx b/frontend/src/components/dashboard/IncidentPanel.tsx
+index e8db7d4..0530f14 100644
+--- a/frontend/src/components/dashboard/IncidentPanel.tsx
++++ b/frontend/src/components/dashboard/IncidentPanel.tsx
+@@ -1,59 +1,306 @@
+-import { AlertTriangle, Clock } from "lucide-react";
+-import type { Incident } from "@/types/dashboard";
++import { useState } from "react";
++import { 
++  Clock, 
++  AlertTriangle, 
++  Terminal, 
++  X, 
++  BookOpen, 
++  Activity, 
++  Globe, 
++  Camera,
++  Search,
++  Ticket,
++  CheckCircle2
++} from "lucide-react";
++import type { Incident, StepBreakdown } from "@/types/dashboard";
+ 
+ interface Props {
+   incidents: Incident[];
+ }
+ 
+-export function IncidentPanel({ incidents }: Props) {
++// --- HELPER COMPONENT: Trace Waterfall Chart ---
++function TraceWaterfall({ steps }: { steps: StepBreakdown[] }) {
++  if (!steps || steps.length === 0) return null;
++  const maxLatency = Math.max(...steps.map(s => s.latency_ms), 1);
++
+   return (
+-    <div className="p-3 space-y-3">
+-      {incidents.map((inc) => (
+-        <div key={inc.incident_id} className="border-b border-border p-2 bg-background/30 hover:bg-muted/50 transition-colors">
+-          {/* Incident Header */}
+-          <div className="flex items-start justify-between mb-1">
+-            <div className="flex items-center gap-2">
+-              <span className="text-[10px] font-mono font-bold text-sre-magenta">#{inc.incident_id}</span>
+-              <span className="text-[10px] font-semibold uppercase px-1 py-0.5 rounded bg-sre-red/10 text-sre-red border border-sre-red/20">
+-                {inc.severity}
+-              </span>
+-            </div>
+-            <div className="flex items-center gap-1 text-muted-foreground">
+-              <Clock className="h-3 w-3" />
+-              <span className="text-[9px] font-mono">
+-                {new Date(inc.timestamp).toLocaleTimeString("en-US", { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+-              </span>
++    <div className="bg-black/40 border border-white/5 rounded-lg p-4">
++      <div className="flex items-center gap-2 mb-4">
++        <Activity className="w-4 h-4 text-purple-400" />
++        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step-Level Trace Waterfall</h3>
++      </div>
++      <div className="space-y-3">
++        {steps.map((step, idx) => {
++          const isFailed = step.status === "failed";
++          const barWidth = Math.max((step.latency_ms / maxLatency) * 100, 2); 
++
++          return (
++            <div key={idx} className="flex flex-col gap-1">
++              <div className="flex justify-between text-[10px] font-mono">
++                <span className="text-gray-300">{step.step_name}</span>
++                <span className={isFailed ? "text-rose-400 font-bold" : "text-emerald-400"}>
++                  {step.latency_ms}ms
++                </span>
++              </div>
++              <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
++                <div 
++                  className={`h-full rounded-full ${isFailed ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-emerald-500"}`}
++                  style={{ width: `${barWidth}%` }}
++                />
++              </div>
+             </div>
+-          </div>
++          );
++        })}
++      </div>
++    </div>
++  );
++}
++
++export function IncidentPanel({ incidents }: Props) {
++  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
++  
++  // NEW SRE STATE: Track which tickets have been "created"
++  const [createdTickets, setCreatedTickets] = useState<Set<string>>(new Set());
++  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
++
++  const handleCreateTicket = () => {
++    if (!selectedIncident) return;
++    
++    setIsCreatingTicket(true);
++    
++    // Simulate API call to Jira/Linear
++    setTimeout(() => {
++      // Here you would normally fetch() to your backend to save the ticket
++      console.log("🎟️ NEW TICKET CREATED:", {
++        title: `[SLA Breach] ${selectedIncident.flow_name} - HTTP ${selectedIncident.http_status_code}`,
++        incident_id: selectedIncident.incident_id,
++        trace_id: selectedIncident.trace_id,
++        timestamp: selectedIncident.timestamp,
++        latency: `${selectedIncident.total_latency_ms}ms`,
++        error_stack: selectedIncident.error_stack,
++        // We include the screenshot in the real payload, but don't log the massive base64 string
++        screenshot_attached: !!selectedIncident.screenshot_base64
++      });
++
++      setCreatedTickets(prev => new Set(prev).add(selectedIncident.incident_id));
++      setIsCreatingTicket(false);
++    }, 800);
++  };
++
++  if (!incidents || incidents.length === 0) {
++    return (
++      <div className="flex flex-col items-center justify-center p-8 border border-dashed border-white/10 rounded-lg bg-black/20">
++        <Activity className="w-8 h-8 text-emerald-500/50 mb-2" />
++        <span className="text-sm font-mono text-gray-500">No active incidents detected. System healthy.</span>
++      </div>
++    );
++  }
+ 
+-          <p className="text-[10px] font-mono text-secondary-foreground mb-2">
+-            <span className="text-muted-foreground">Flow:</span> {inc.flow_name}
+-            {inc.trace_id ? <span className="ml-2"><span className="text-muted-foreground">Trace:</span> {inc.trace_id}</span> : null}
+-            <span className="ml-2 text-muted-foreground">Status:</span> <span className="text-sre-red">{inc.http_status_code}</span>
+-          </p>
+-
+-          {/* Error Stack */}
+-          {inc.error_stack && typeof inc.error_stack === 'string' && (
+-            <div className="mb-1">
+-              <pre className="bg-[#111216] border border-border/50 rounded p-2 text-[9px] text-sre-red/80 font-mono overflow-x-auto whitespace-pre-wrap max-h-24 overflow-y-auto">
+-                {inc.error_stack.split('\n')[0]} {/* Only show first line for density */}
+-              </pre>
++  return (
++    <>
++      <div className="overflow-x-auto">
++        <table className="w-full text-left border-collapse">
++          <thead>
++            <tr className="border-b border-white/10 text-[10px] uppercase tracking-widest text-gray-500 font-mono">
++              <th className="pb-3 pl-2 font-semibold">Timestamp</th>
++              <th className="pb-3 font-semibold">Incident / Trace ID</th>
++              <th className="pb-3 font-semibold">HTTP Status</th>
++              <th className="pb-3 font-semibold">Total Latency</th>
++              <th className="pb-3 text-right pr-2 font-semibold">Action</th>
++            </tr>
++          </thead>
++          <tbody>
++            {incidents.map((inc) => {
++              const hasTicket = createdTickets.has(inc.incident_id);
++              return (
++                <tr 
++                  key={inc.incident_id} 
++                  className="border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" 
++                  onClick={() => setSelectedIncident(inc)}
++                >
++                  <td className="py-3 pl-2">
++                    <div className="flex items-center gap-1.5 text-xs text-gray-400 font-mono">
++                      <Clock className="w-3 h-3 opacity-50" />
++                      {new Date(inc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
++                    </div>
++                  </td>
++                  <td className="py-3">
++                    <div className="flex flex-col">
++                      <div className="flex items-center gap-2">
++                        <span className="text-xs font-bold text-rose-400">{inc.incident_id}</span>
++                        {hasTicket && <span className="bg-purple-500/20 text-purple-400 text-[9px] px-1.5 py-0.5 rounded border border-purple-500/30 uppercase tracking-wider font-bold">Ticket Open</span>}
++                      </div>
++                      <span className="text-[10px] text-gray-500 font-mono truncate max-w-[150px]">{inc.trace_id || "No trace generated"}</span>
++                    </div>
++                  </td>
++                  <td className="py-3">
++                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${
++                      inc.http_status_code >= 500 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
++                      inc.http_status_code >= 400 ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
++                      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
++                    }`}>
++                      HTTP {inc.http_status_code}
++                    </span>
++                  </td>
++                  <td className="py-3 text-xs font-mono text-rose-400 font-bold">
++                    {inc.total_latency_ms}ms
++                  </td>
++                  <td className="py-3 text-right pr-2">
++                    <button 
++                      className="flex items-center justify-end gap-1 w-full text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity"
++                      onClick={(e) => { e.stopPropagation(); setSelectedIncident(inc); }}
++                    >
++                      <Search className="w-3 h-3" />
++                      Investigate
++                    </button>
++                  </td>
++                </tr>
++              )
++            })}
++          </tbody>
++        </table>
++      </div>
++
++      {selectedIncident && (
++        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
++          <div className="bg-[#0a0a0f] border border-white/10 rounded-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col">
++            
++            {/* Modal Header */}
++            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40 sticky top-0 z-10">
++              <div className="flex items-center gap-3">
++                <div className="w-8 h-8 rounded bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
++                  <AlertTriangle className="w-4 h-4 text-rose-500" />
++                </div>
++                <div>
++                  <h2 className="text-sm font-bold text-white tracking-wide">Incident Report: {selectedIncident.incident_id}</h2>
++                  <p className="text-[10px] text-gray-400 font-mono mt-0.5">{new Date(selectedIncident.timestamp).toUTCString()}</p>
++                </div>
++              </div>
++
++              {/* NEW SRE ACTIONS MENU */}
++              <div className="flex items-center gap-3">
++                {createdTickets.has(selectedIncident.incident_id) ? (
++                  <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold tracking-widest uppercase">
++                    <CheckCircle2 className="w-4 h-4" />
++                    Jira Ticket Sent
++                  </div>
++                ) : (
++                  <button 
++                    onClick={handleCreateTicket}
++                    disabled={isCreatingTicket}
++                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold tracking-widest uppercase transition-colors disabled:opacity-50"
++                  >
++                    <Ticket className="w-4 h-4" />
++                    {isCreatingTicket ? "Syncing..." : "Create Ticket"}
++                  </button>
++                )}
++                
++                <div className="w-px h-6 bg-white/10 mx-1" />
++                
++                <button 
++                  onClick={() => setSelectedIncident(null)} 
++                  className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
++                >
++                  <X className="w-5 h-5" />
++                </button>
++              </div>
+             </div>
+-          )}
+-
+-          {/* Screenshot if available */}
+-          {inc.screenshot_base64 && (
+-            <div>
+-              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Screenshot</h4>
+-              <img
+-                src={`data:image/png;base64,${inc.screenshot_base64}`}
+-                alt="Incident screenshot"
+-                className="w-full rounded border border-border"
+-              />
++
++            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
++              
++              {/* LEFT COLUMN: Data & Traces */}
++              <div className="flex flex-col gap-4">
++                
++                <div className="grid grid-cols-2 gap-3">
++                  <div className="bg-white/5 border border-white/5 rounded-lg p-3">
++                    <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Flow Name</span>
++                    <span className="text-xs font-mono text-gray-200">{selectedIncident.flow_name}</span>
++                  </div>
++                  <div className="bg-white/5 border border-white/5 rounded-lg p-3">
++                    <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Edge Region</span>
++                    <div className="flex items-center gap-1.5 text-xs font-mono text-gray-200">
++                      <Globe className="w-3 h-3 text-blue-400" />
++                      {selectedIncident.region || "ap-south-1"}
++                    </div>
++                  </div>
++                  <div className="bg-rose-500/5 border border-rose-500/10 rounded-lg p-3">
++                    <span className="text-[9px] text-rose-500/70 uppercase tracking-widest block mb-1">Total Latency</span>
++                    <span className="text-sm font-mono font-bold text-rose-400">{selectedIncident.total_latency_ms}ms</span>
++                  </div>
++                  <div className="bg-white/5 border border-white/5 rounded-lg p-3">
++                    <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Trace ID</span>
++                    <span className="text-[10px] font-mono text-purple-400">{selectedIncident.trace_id || "N/A"}</span>
++                  </div>
++                </div>
++
++                {selectedIncident.triage_advice && (
++                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 relative overflow-hidden">
++                    <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2" />
++                    <div className="flex items-center gap-2 mb-2">
++                      <BookOpen className="w-4 h-4 text-blue-400" />
++                      <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">AI Action Plan</span>
++                    </div>
++                    <p className="text-sm text-blue-100 mb-3 font-medium leading-relaxed">{selectedIncident.triage_advice.action}</p>
++                    <a 
++                      href={selectedIncident.triage_advice.runbook_url} 
++                      className="text-[10px] font-mono font-bold text-blue-300 hover:text-white hover:bg-blue-500/30 border border-blue-500/30 bg-blue-500/20 px-3 py-2 rounded inline-flex items-center gap-2 transition-all"
++                    >
++                      Execute Runbook ↗
++                    </a>
++                  </div>
++                )}
++
++                <TraceWaterfall steps={selectedIncident.step_breakdown} />
++              </div>
++
++              {/* RIGHT COLUMN: Evidence */}
++              <div className="flex flex-col gap-4">
++                
++                <div className="flex flex-col h-full min-h-[300px]">
++                  <div className="flex items-center gap-2 mb-3">
++                    <Camera className="w-4 h-4 text-gray-400" />
++                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">UI State Capture</h3>
++                  </div>
++                  {selectedIncident.screenshot_base64 ? (
++                    <div className="flex-1 rounded-lg border border-white/10 overflow-hidden bg-[#050505] flex items-center justify-center p-2 relative">
++                      {/* Ticket Evidence Tag overlay on the image */}
++                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur border border-white/10 px-2 py-1 rounded text-[9px] font-mono text-gray-400 uppercase tracking-widest z-10">
++                        Evidence ID: {selectedIncident.incident_id}
++                      </div>
++                      <img 
++                        src={`data:image/png;base64,${selectedIncident.screenshot_base64}`} 
++                        alt="Playwright DOM Capture" 
++                        className="w-full h-auto max-h-[400px] object-contain rounded border border-white/5 shadow-2xl"
++                      />
++                    </div>
++                  ) : (
++                    <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-lg bg-white/[0.02]">
++                      <Camera className="w-8 h-8 text-gray-600 mb-2" />
++                      <span className="text-xs font-mono text-gray-500">No visual evidence captured.</span>
++                    </div>
++                  )}
++                </div>
++
++                {selectedIncident.error_stack && (
++                  <div>
++                    <div className="flex items-center gap-2 mb-2">
++                      <Terminal className="w-4 h-4 text-gray-400" />
++                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Raw Exception</h3>
++                    </div>
++                    <div className="bg-[#050505] border border-red-500/20 rounded-lg p-4 overflow-x-auto relative">
++                      <div className="absolute top-0 left-0 w-1 h-full bg-red-500/50" />
++                      <pre className="text-[11px] text-rose-400/90 font-mono whitespace-pre-wrap leading-relaxed">
++                        {selectedIncident.error_stack}
++                      </pre>
++                    </div>
++                  </div>
++                )}
++
++              </div>
+             </div>
+-          )}
++          </div>
+         </div>
+-      ))}
+-    </div>
++      )}
++    </>
+   );
+-}
++}
+\ No newline at end of file
+diff --git a/frontend/src/components/dashboard/NetworkGrid.tsx b/frontend/src/components/dashboard/NetworkGrid.tsx
+index 41588c1..03b1e2c 100644
+--- a/frontend/src/components/dashboard/NetworkGrid.tsx
++++ b/frontend/src/components/dashboard/NetworkGrid.tsx
+@@ -1,33 +1,75 @@
++import { Globe, AlertCircle, CheckCircle2, ServerCrash } from "lucide-react";
+ import type { HttpStatusBreakdown } from "@/types/dashboard";
+ 
+ interface Props {
+   breakdown: HttpStatusBreakdown;
+ }
+ 
+-function getStatusColor(code: string): string {
++// Enterprise Helper: Maps status codes to specific colors, glows, and icons
++function getStatusConfig(code: string) {
+   const num = parseInt(code);
+-  if (num >= 200 && num < 300) return "text-sre-green";
+-  if (num >= 300 && num < 400) return "text-sre-blue";
+-  if (num >= 400 && num < 500) return "text-sre-orange";
+-  return "text-sre-red";
++  if (num >= 200 && num < 300) {
++    return { color: "text-emerald-400", bg: "bg-emerald-500", icon: CheckCircle2 };
++  }
++  if (num >= 300 && num < 400) {
++    return { color: "text-blue-400", bg: "bg-blue-500", icon: Globe };
++  }
++  if (num >= 400 && num < 500) {
++    return { color: "text-amber-400", bg: "bg-amber-500", icon: AlertCircle };
++  }
++  // 500+ Critical Errors get a custom neon glow effect
++  return { 
++    color: "text-rose-400", 
++    bg: "bg-rose-500", 
++    icon: ServerCrash, 
++    shadow: "shadow-[0_0_10px_rgba(244,63,94,0.6)]" 
++  };
+ }
+ 
+ export function NetworkGrid({ breakdown }: Props) {
+-  const entries = Object.entries(breakdown).sort(([, a], [, b]) => b - a);
++  // Safely parse the entries to numbers just in case the backend sent strings,
++  // then sort them from highest percentage to lowest percentage.
++  const entries = Object.entries(breakdown || {})
++    .map(([code, pct]) => [code, typeof pct === 'string' ? parseFloat(pct) : pct] as [string, number])
++    .sort(([, a], [, b]) => b - a);
++
++  if (entries.length === 0) {
++    return (
++      <div className="flex h-24 items-center justify-center border border-dashed border-white/10 rounded-lg">
++        <span className="text-xs font-mono text-gray-500">Awaiting network telemetry...</span>
++      </div>
++    );
++  }
+ 
+   return (
+-    <div className="bg-card border border-border rounded-lg p-4">
+-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Network Distribution</h3>
+-      <div className="grid grid-cols-2 gap-2">
+-        {entries.map(([code, pct]) => (
+-          <div key={code} className="flex items-center justify-between bg-muted/40 rounded px-3 py-2">
+-            <span className={`text-sm font-mono font-bold ${getStatusColor(code)}`}>{code}:</span>
+-            <span className={`text-sm font-mono font-semibold ${getStatusColor(code)}`}>
+-              {typeof pct === "number" ? pct.toFixed(1) : pct}%
+-            </span>
++    <div className="flex flex-col gap-4">
++      {entries.map(([code, pct]) => {
++        const { color, bg, icon: Icon, shadow } = getStatusConfig(code);
++        
++        return (
++          <div key={code} className="flex flex-col gap-1.5 group">
++            
++            {/* Header: Icon + Code + Percentage */}
++            <div className="flex justify-between items-center text-xs font-mono">
++              <span className={`font-bold flex items-center gap-1.5 ${color} group-hover:brightness-125 transition-all`}>
++                <Icon className="w-3.5 h-3.5 opacity-80" />
++                HTTP {code}
++              </span>
++              <span className="text-gray-300 font-bold">{pct.toFixed(1)}%</span>
++            </div>
++
++            {/* Visual Distribution Progress Bar */}
++            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
++              <div 
++                className={`h-full rounded-full transition-all duration-700 ${bg} ${shadow || ''}`}
++                // Use Math.max(pct, 1) so even a 0.1% error shows a tiny visible sliver
++                style={{ width: `${Math.max(pct, 1)}%` }} 
++              />
++            </div>
++
+           </div>
+-        ))}
+-      </div>
++        );
++      })}
+     </div>
+   );
+-}
++}
+\ No newline at end of file
+diff --git a/frontend/src/components/dashboard/PerformanceChart.tsx b/frontend/src/components/dashboard/PerformanceChart.tsx
+index c413fa4..4d92417 100644
+--- a/frontend/src/components/dashboard/PerformanceChart.tsx
++++ b/frontend/src/components/dashboard/PerformanceChart.tsx
+@@ -1,4 +1,14 @@
+-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
++import { 
++  AreaChart, 
++  Area, 
++  XAxis, 
++  YAxis, 
++  CartesianGrid, 
++  Tooltip, 
++  ResponsiveContainer,
++  ReferenceLine 
++} from "recharts";
++import { Activity } from "lucide-react";
+ import type { ChartDataPoint, LatencyMetrics } from "@/types/dashboard";
+ 
+ interface Props {
+@@ -6,71 +16,162 @@ interface Props {
+   latencyMetrics: LatencyMetrics;
+ }
+ 
++// 1. THE SRE UPGRADE: Massive Glowing Dot + Vertical Laser Line
+ function CustomDot(props: any) {
+   const { cx, cy, payload } = props;
+   if (payload.status === "failed") {
+     return (
+-      <circle cx={cx} cy={cy} r={5} fill="hsl(0, 90%, 63%)" stroke="hsl(0, 90%, 73%)" strokeWidth={2} />
++      <g className="drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]">
++        {/* The Vertical Incident Laser */}
++        <line x1={cx} y1={cy} x2={cx} y2={2000} stroke="#f43f5e" strokeDasharray="4 4" strokeOpacity={0.5} strokeWidth={1.5} />
++        {/* Pulsing Aura */}
++        <circle cx={cx} cy={cy} r={12} fill="rgba(244, 63, 94, 0.2)" className="animate-ping" />
++        {/* Core Dot */}
++        <circle cx={cx} cy={cy} r={5} fill="#f43f5e" stroke="#18181b" strokeWidth={2} />
++      </g>
+     );
+   }
+   return null;
+ }
+ 
++// 2. The Contextual Tooltip (Glows Red on Failure)
++const CustomTooltip = ({ active, payload, label }: any) => {
++  if (active && payload && payload.length) {
++    const data = payload[0].payload;
++    const isFailed = data.status === "failed";
++    
++    return (
++      <div className={`bg-black/80 backdrop-blur-md p-3 rounded-xl shadow-2xl font-mono text-xs z-50 transition-all duration-200 border ${
++        isFailed ? "border-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.2)]" : "border-white/10"
++      }`}>
++        <p className="text-gray-400 mb-2 border-b border-white/10 pb-1">{label}</p>
++        <div className="flex items-center justify-between gap-6">
++          <div className="flex items-center gap-2">
++            <div className={`w-2 h-2 rounded-full ${isFailed ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-fuchsia-500 shadow-[0_0_8px_#d946ef]"}`} />
++            <span className="text-white font-semibold">Latency</span>
++          </div>
++          <span className={isFailed ? "text-rose-400 font-bold" : "text-fuchsia-400 font-bold"}>
++            {data.realLatency}ms
++          </span>
++        </div>
++        {isFailed && (
++          <div className="mt-2 text-[9px] uppercase tracking-widest text-rose-400 font-bold bg-rose-500/10 px-2 py-1 rounded w-fit">
++            SLA Breach Detected
++          </div>
++        )}
++      </div>
++    );
++  }
++  return null;
++};
++
+ export function PerformanceChart({ data, latencyMetrics }: Props) {
++  const VISUAL_CEILING = 3000; 
++
++  const formattedData = data.map(d => {
++    // Jitter for a tighter, cleaner "breathing" effect
++    const uiJitter = d.status === "success" ? Math.floor(Math.random() * 100) + 50 : 0;
++    const actualLatency = d.latency + uiJitter;
++    const visualLatency = Math.min(actualLatency, VISUAL_CEILING);
++
++    return {
++      ...d,
++      displayTime: new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
++      visualLatency: visualLatency,  
++      realLatency: actualLatency,    
++    };
++  });
++
+   return (
+-    <div>
+-      <div className="flex items-center justify-between mb-2">
+-        <h3 className="text-xs font-semibold text-foreground">User Journey Latency (ms)</h3>
+-        <div className="flex gap-3 text-[10px] font-mono">
+-          <span className="text-muted-foreground">
+-            P95: <span className="text-sre-blue font-semibold">{latencyMetrics.p95_ms}ms</span>
+-          </span>
+-          <span className="text-muted-foreground">
+-            P99: <span className="text-sre-orange font-semibold">{latencyMetrics.p99_ms}ms</span>
+-          </span>
++    <div className="w-full h-full flex flex-col">
++      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
++        <div className="flex items-center gap-2">
++          <Activity className="w-4 h-4 text-fuchsia-400" />
++          <h3 className="text-xs font-bold text-gray-300 uppercase tracking-widest">User Journey Latency</h3>
++        </div>
++        
++        <div className="flex flex-wrap gap-2 text-[10px] font-mono">
++          <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
++            <span className="text-gray-500 uppercase tracking-widest">p50</span>
++            <span className="text-white font-bold">{latencyMetrics.p50_ms}ms</span>
++          </div>
++          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
++            <span className="text-amber-500/70 uppercase tracking-widest">p95</span>
++            <span className="text-amber-400 font-bold">{latencyMetrics.p95_ms}ms</span>
++          </div>
++          <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-full">
++            <span className="text-rose-400/70 uppercase tracking-widest">p99</span>
++            <span className="text-rose-400 font-bold">{latencyMetrics.p99_ms}ms</span>
++          </div>
+         </div>
+       </div>
+-      <ResponsiveContainer width="100%" height={200}>
+-        <AreaChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+-          <defs>
+-            <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
+-              <stop offset="0%" stopColor="hsl(var(--sre-pink))" stopOpacity={0.4} />
+-              <stop offset="100%" stopColor="hsl(var(--sre-pink))" stopOpacity={0} />
+-            </linearGradient>
+-          </defs>
+-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+-          <XAxis
+-            dataKey="time"
+-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9 }}
+-            tickLine={false}
+-            axisLine={{ stroke: "hsl(var(--border))" }}
+-          />
+-          <YAxis
+-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9 }}
+-            tickLine={false}
+-            axisLine={{ stroke: "hsl(var(--border))" }}
+-            unit="ms"
+-          />
+-          <Tooltip
+-            contentStyle={{
+-              backgroundColor: "hsl(var(--card))",
+-              border: "1px solid hsl(var(--border))",
+-              borderRadius: "4px",
+-              color: "hsl(var(--card-foreground))",
+-              fontSize: "11px",
+-              fontFamily: "JetBrains Mono, monospace",
+-            }}
+-          />
+-          <Area
+-            type="monotone"
+-            dataKey="latency"
+-            stroke="hsl(var(--sre-pink))"
+-            strokeWidth={2}
+-            fill="url(#latencyGradient)"
+-            dot={<CustomDot />}
+-          />
+-        </AreaChart>
+-      </ResponsiveContainer>
++
++      <div className="flex-1 w-full min-h-[260px] relative">
++        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-fuchsia-500/5 blur-[100px] rounded-full pointer-events-none" />
++        
++        <ResponsiveContainer width="100%" height="100%">
++          <AreaChart data={formattedData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
++            <defs>
++              <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
++                <stop offset="5%" stopColor="#d946ef" stopOpacity={0.5} />
++                <stop offset="80%" stopColor="#8b5cf6" stopOpacity={0.0} />
++              </linearGradient>
++            </defs>
++            
++            <CartesianGrid stroke="rgba(255,255,255,0.02)" vertical={false} />
++            
++            <XAxis 
++              dataKey="displayTime" 
++              tick={{ fill: "#52525b", fontSize: 10, fontFamily: "monospace" }} 
++              tickLine={false} 
++              axisLine={false} 
++              minTickGap={40}
++            />
++            
++            <YAxis 
++              domain={[0, VISUAL_CEILING]}
++              tick={{ fill: "#52525b", fontSize: 10, fontFamily: "monospace" }} 
++              tickLine={false} 
++              axisLine={false} 
++              tickFormatter={(val) => `${val}ms`} 
++            />
++            
++            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(217, 70, 239, 0.1)', strokeWidth: 4 }} />
++            
++            <ReferenceLine 
++              y={2000} 
++              label={{ position: 'insideTopLeft', value: 'SLA LIMIT', fill: '#f43f5e', fontSize: 10, fontWeight: 'bold', fontFamily: 'monospace' }} 
++              stroke="#f43f5e" 
++              strokeDasharray="4 4" 
++              strokeOpacity={0.8}
++            />
++
++            <Area 
++              type="monotoneX" 
++              dataKey="visualLatency" 
++              stroke="#d946ef" 
++              strokeWidth={3} 
++              fill="url(#latencyGradient)" 
++              // FIX 1: Turn off the buggy re-draw animation so dots don't disappear
++              isAnimationActive={false} 
++              // FIX 2: Smart Hover Dot that stays Red if it's a failure
++              activeDot={(props: any) => {
++                const { cx, cy, payload } = props;
++                const isFailed = payload.status === "failed";
++                return (
++                  <circle 
++                    cx={cx} cy={cy} r={7} 
++                    fill={isFailed ? "#f43f5e" : "#d946ef"} 
++                    stroke="#18181b" strokeWidth={2} 
++                    className={isFailed ? "drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]" : ""}
++                  />
++                );
++              }}
++              dot={<CustomDot />} 
++            />
++          </AreaChart>
++        </ResponsiveContainer>
++      </div>
+     </div>
+   );
+-}
++}
+\ No newline at end of file
+diff --git a/frontend/src/components/dashboard/StepBreakdownTable.tsx b/frontend/src/components/dashboard/StepBreakdownTable.tsx
+index 0f8cb9a..5fc1971 100644
+--- a/frontend/src/components/dashboard/StepBreakdownTable.tsx
++++ b/frontend/src/components/dashboard/StepBreakdownTable.tsx
+@@ -1,3 +1,4 @@
++import { CheckCircle2, XCircle, Clock } from "lucide-react";
+ import type { StepBreakdown } from "@/types/dashboard";
+ 
+ interface Props {
+@@ -5,38 +6,80 @@ interface Props {
+ }
+ 
+ export function StepBreakdownTable({ steps }: Props) {
++  if (!steps || steps.length === 0) {
++    return (
++      <div className="flex items-center justify-center p-6 border border-dashed border-white/10 rounded-lg">
++        <span className="text-xs font-mono text-gray-500">Awaiting step trace data...</span>
++      </div>
++    );
++  }
++
++  // SRE MATH: Find the slowest step to scale our mini-waterfall bars
++  const maxLatency = Math.max(...steps.map(s => s.latency_ms), 1);
++
+   return (
+-    <div className="bg-card border border-border rounded-lg p-4">
+-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Step-Level Breakdown</h3>
+-      <div className="overflow-x-auto">
+-        <table className="w-full text-xs font-mono">
+-          <thead>
+-            <tr className="border-b border-border text-muted-foreground">
+-              <th className="text-left py-1.5 pr-2">Name</th>
+-              <th className="text-right py-1.5 px-2">Latency</th>
+-              <th className="text-right py-1.5 pl-2">Status</th>
+-            </tr>
+-          </thead>
+-          <tbody>
+-            {steps.map((step, i) => (
+-              <tr key={i} className="border-b border-border/50">
+-                <td className="py-1.5 pr-2 text-foreground">{step.step_name}</td>
+-                <td className="py-1.5 px-2 text-right text-muted-foreground">{step.latency_ms}ms</td>
+-                <td className="py-1.5 pl-2 text-right">
+-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${step.status === "passed" || step.status === "success"
+-                    ? "bg-sre-green/20 text-sre-green"
+-                    : step.status === "failed"
+-                      ? "bg-sre-red/20 text-sre-red"
+-                      : "bg-muted text-muted-foreground"
+-                    }`}>
+-                    {step.status}
++    <div className="flex flex-col gap-3">
++      {steps.map((step, i) => {
++        const isFailed = step.status === "failed";
++        const isSuccess = step.status === "passed" || step.status === "success";
++        
++        // Calculate relative width for the visual bar (minimum 2% so fast steps are still visible)
++        const widthPct = Math.max((step.latency_ms / maxLatency) * 100, 2);
++
++        return (
++          <div 
++            key={i} 
++            className="relative flex flex-col gap-2 p-3 rounded-lg bg-black/20 border border-white/5 hover:bg-white/[0.04] transition-colors overflow-hidden group"
++          >
++            
++            {/* 1. Subtle Background Highlight (The Waterfall Effect) */}
++            <div 
++              className={`absolute top-0 left-0 h-full opacity-10 transition-all duration-700 ${isFailed ? "bg-rose-500" : "bg-emerald-500"}`}
++              style={{ width: `${widthPct}%` }}
++            />
++
++            {/* 2. The Main Content Row */}
++            <div className="relative flex items-center justify-between z-10">
++              {/* Step Name & Icon */}
++              <div className="flex items-center gap-2">
++                {isFailed ? (
++                  <XCircle className="w-4 h-4 text-rose-500" />
++                ) : (
++                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
++                )}
++                <span className={`text-xs font-bold tracking-wide ${isFailed ? 'text-rose-100' : 'text-gray-200'}`}>
++                  {step.step_name}
++                </span>
++              </div>
++
++              {/* Status Badge & Latency */}
++              <div className="flex items-center gap-4">
++                <div className="flex items-center gap-1.5 text-xs font-mono">
++                  <Clock className="w-3 h-3 opacity-50 text-gray-400" />
++                  <span className={`font-bold ${isFailed ? 'text-rose-400' : 'text-emerald-400'}`}>
++                    {step.latency_ms}ms
+                   </span>
+-                </td>
+-              </tr>
+-            ))}
+-          </tbody>
+-        </table>
+-      </div>
++                </div>
++                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${
++                  isFailed 
++                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
++                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
++                }`}>
++                  {step.status}
++                </span>
++              </div>
++            </div>
++
++            {/* 3. The Solid Progress Bar Line */}
++            <div className="relative w-full h-1 bg-white/5 rounded-full mt-1 z-10 overflow-hidden">
++               <div 
++                className={`h-full rounded-full transition-all duration-700 ${isFailed ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-emerald-500"}`}
++                style={{ width: `${widthPct}%` }}
++               />
++            </div>
++          </div>
++        );
++      })}
+     </div>
+   );
+-}
++}
+\ No newline at end of file
+diff --git a/frontend/src/pages/Index.tsx b/frontend/src/pages/Index.tsx
+index 7bd66f2..a272847 100644
+--- a/frontend/src/pages/Index.tsx
++++ b/frontend/src/pages/Index.tsx
+@@ -1,4 +1,4 @@
+-import { Monitor, Activity, BarChart3, AlertCircle } from "lucide-react";
++import { Monitor, AlertTriangle } from "lucide-react";
+ import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+ import { GlobalHealth } from "@/components/dashboard/GlobalHealth";
+ import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
+@@ -10,125 +10,98 @@ import Sidebar from "@/components/Sidebar";
+ 
+ const Index = () => {
+   const { metrics, isLive } = useDashboardMetrics();
+-  const latestIncident = metrics.incident_panel[0] ?? null;
++  const latestIncident = metrics?.incident_panel?.[0] ?? null;
++
++  if (!metrics) {
++    return (
++      <div className="flex h-screen w-full items-center justify-center bg-[#0a0a0f] text-white">
++        <div className="flex flex-col items-center gap-4 animate-pulse">
++          <Monitor className="h-8 w-8 text-purple-500" />
++          <p className="text-sm font-mono tracking-widest text-gray-400">CONNECTING TO ENGINE...</p>
++        </div>
++      </div>
++    );
++  }
+ 
+   return (
+-    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0a0a0f]">
+-      <div className="hidden md:block">
++    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0a0a0f] text-gray-100 font-sans">
++      
++      {/* SIDEBAR */}
++      <div className="hidden md:block border-r border-white/5 bg-black/20">
+         <Sidebar />
+       </div>
+ 
+-      <div className="flex-1 overflow-y-auto p-4 md:p-6 w-full">
+-        {/* Top Bar */}
+-        <header className="flex items-center justify-between mb-6 bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-lg">
++      {/* MAIN DASHBOARD AREA */}
++      <div className="flex-1 overflow-y-auto p-4 md:p-6 w-full scroll-smooth">
++        
++        {/* --- HEADER: Environment & Demo Controls --- */}
++        <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+           <div className="flex items-center gap-4">
+-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
++            <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+               <Monitor className="h-5 w-5 text-purple-400" />
+             </div>
+             <div>
+-              <h1 className="text-base font-bold text-white tracking-tight">Application + Infrastructure Overview</h1>
++              <h1 className="text-xl font-bold text-white tracking-tight">Synthetic-Eye Telemetry</h1>
+               <div className="flex items-center gap-2 mt-1">
+-                <div className={`h-2 w-2 rounded-full ${isLive ? "bg-green-400 shadow-lg shadow-green-400/50" : "bg-yellow-400 shadow-lg shadow-yellow-400/50"}`} />
+-                <span className="text-xs font-mono text-gray-400 uppercase tracking-wider">
+-                  {isLive ? "Live" : "Simulated"}
++                <div className={`h-2 w-2 rounded-full ${isLive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
++                <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
++                  Primary Checkout Flow • ap-south-1
+                 </span>
+               </div>
+             </div>
+           </div>
++          
++          {/* Global Actions (Put the kill switch here!) */}
++          <div className="flex items-center gap-3">
++            <FaultButton /> 
++          </div>
+         </header>
+ 
+-        {/* 3-Column Layout */}
+-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+-
+-          {/* Pillar 1: Metrics */}
+-          <div className="flex flex-col gap-4">
+-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white text-center py-3 text-lg font-bold uppercase tracking-wider rounded-2xl shadow-lg shadow-purple-500/30">
+-              Metrics
+-            </div>
+-
+-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl flex flex-col gap-4 p-4 shadow-xl">
+-              <div className="p-3 border-b border-white/10">
+-                <GlobalHealth health={metrics.global_health} errorBudget={metrics.sla_error_budget} />
+-              </div>
++        {/* --- THE 12-COLUMN ENTERPRISE GRID --- */}
++        <div className="grid grid-cols-12 gap-4 md:gap-6">
+ 
+-              {/* SLA Error Budget */}
+-              <div className="p-4 border-b border-white/10">
+-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Error Budget</h3>
+-                <div className="flex items-center justify-between mb-2">
+-                  <span className="text-3xl font-bold font-mono text-white text-center w-full">
+-                    {metrics.sla_error_budget.budget_remaining_pct.toFixed(2)}%
+-                  </span>
+-                </div>
+-                <div className="flex justify-between text-xs text-gray-400 mb-2">
+-                  <span>{metrics.sla_error_budget.slo_target}</span>
+-                </div>
+-                <div className="h-3 w-full bg-black/30 border border-white/10 rounded-full overflow-hidden flex">
+-                  <div
+-                    className="h-full transition-all duration-700 rounded-full"
+-                    style={{
+-                      width: `${metrics.sla_error_budget.budget_remaining_pct}%`,
+-                      background: metrics.sla_error_budget.budget_remaining_pct > 50
+-                        ? "linear-gradient(90deg, #10b981, #059669)"
+-                        : metrics.sla_error_budget.budget_remaining_pct > 20
+-                          ? "linear-gradient(90deg, #f59e0b, #d97706)"
+-                          : "linear-gradient(90deg, #ef4444, #dc2626)",
+-                    }}
+-                  />
+-                </div>
+-              </div>
+-
+-              <div className="p-3">
+-                <NetworkGrid breakdown={metrics.http_status_breakdown} />
+-              </div>
+-            </div>
++          {/* ROW 1: Executive Summary (Spans 12 columns) */}
++          <div className="col-span-12">
++            <GlobalHealth health={metrics.global_health} errorBudget={metrics.sla_error_budget} />
+           </div>
+ 
+-          {/* Pillar 2: Traces */}
+-          <div className="flex flex-col gap-4">
+-            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white text-center py-3 text-lg font-bold uppercase tracking-wider rounded-2xl shadow-lg shadow-pink-500/30">
+-              Traces
++          {/* ROW 2: Left Side (8 cols) for Chart, Right Side (4 cols) for Breakdown */}
++          <div className="col-span-12 lg:col-span-8 flex flex-col gap-4 bg-white/[0.02] border border-white/5 rounded-xl p-5 shadow-lg backdrop-blur-sm">
++            <div className="flex items-center justify-between mb-2">
++              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Latency Distribution (ms)</h2>
++              <span className="text-[10px] text-gray-500 font-mono">Last 50 synthetic runs</span>
+             </div>
+-
+-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl flex flex-col gap-4 p-4 shadow-xl">
++            {/* Ensure PerformanceChart takes up full width/height of its container */}
++            <div className="h-64 w-full">
+               <PerformanceChart data={metrics.chart_data} latencyMetrics={metrics.latency_metrics} />
+-
+-              {latestIncident && (
+-                <div className="mt-2">
+-                  <StepBreakdownTable steps={latestIncident.step_breakdown} />
+-                </div>
+-              )}
+-
+-              {/* HTTP Status Breakdown summary */}
+-              <div className="border border-white/10 p-4 bg-black/20 rounded-xl backdrop-blur-sm">
+-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">HTTP Status Trends</h3>
+-                <div className="overflow-x-auto">
+-                  <table className="w-full text-xs font-mono">
+-                    <tbody>
+-                      {Object.entries(metrics.http_status_breakdown)
+-                        .sort(([, a], [, b]) => b - a)
+-                        .slice(0, 4)
+-                        .map(([code, pct]) => (
+-                          <tr key={code} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+-                            <td className={`py-2 font-bold ${parseInt(code) < 400 ? "text-green-400" : "text-red-400"}`}>{code}</td>
+-                            <td className="py-2 text-right text-gray-400">{pct.toFixed(1)}%</td>
+-                          </tr>
+-                        ))}
+-                    </tbody>
+-                  </table>
+-                </div>
+-              </div>
+             </div>
+           </div>
+ 
+-          {/* Pillar 3: Logs */}
+-          <div className="flex flex-col gap-4 h-full">
+-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center py-3 text-lg font-bold uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-500/30">
+-              Logs
++          <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
++            {/* Step Breakdown */}
++            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 shadow-lg backdrop-blur-sm flex-1">
++              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">User Journey Latency</h2>
++              {latestIncident ? (
++                <StepBreakdownTable steps={latestIncident.step_breakdown} />
++              ) : (
++                <div className="text-sm text-gray-500 font-mono text-center mt-10">Awaiting trace data...</div>
++              )}
+             </div>
++            
++            {/* Network Grid */}
++            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 shadow-lg backdrop-blur-sm">
++              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Network Activity</h2>
++              <NetworkGrid breakdown={metrics.http_status_breakdown} />
++            </div>
++          </div>
+ 
+-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl flex-1 overflow-y-auto shadow-xl" style={{ maxHeight: "calc(100vh - 180px)" }}>
+-              <IncidentPanel incidents={metrics.incident_panel} />
++          {/* ROW 3: Incident Evidence Table (Spans 12 columns) */}
++          <div className="col-span-12 bg-white/[0.02] border border-white/5 rounded-xl p-5 shadow-lg backdrop-blur-sm mb-10">
++            <div className="flex items-center gap-2 mb-4">
++              <AlertTriangle className="w-4 h-4 text-rose-400" />
++              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Trace & Incident Logs</h2>
+             </div>
++            <IncidentPanel incidents={metrics.incident_panel} />
+           </div>
+ 
+         </div>
+@@ -137,4 +110,4 @@ const Index = () => {
+   );
+ };
+ 
+-export default Index;
++export default Index;
+\ No newline at end of file

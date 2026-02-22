@@ -1,0 +1,25 @@
+.gitignore
+dummy-store/package-lock.json
+dummy-store/package.json
+frontend/package-lock.json
+frontend/package.json
+frontend/src/components/dashboard/GlobalHealth.tsx
+frontend/src/components/dashboard/IncidentPanel.tsx
+frontend/src/components/dashboard/NetworkGrid.tsx
+frontend/src/components/dashboard/PerformanceChart.tsx
+frontend/src/components/dashboard/StepBreakdownTable.tsx
+frontend/src/pages/Alerts.tsx
+frontend/src/pages/Analytics.tsx
+frontend/src/pages/Incidents.tsx
+frontend/src/pages/Index.tsx
+frontend/src/pages/Logs.tsx
+frontend/src/pages/Monitors.tsx
+frontend/src/pages/NotFound.tsx
+frontend/src/pages/Settings.tsx
+frontend/src/types/dashboard.ts
+monitoring backend/app/__pycache__/main.cpython-314.pyc
+monitoring backend/app/__pycache__/schemas.cpython-314.pyc
+monitoring backend/app/routers/__pycache__/monitoring.cpython-314.pyc
+monitoring backend/app/services/__pycache__/metrics_engine.cpython-314.pyc
+package-lock.json
+package.json

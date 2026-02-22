@@ -9,10 +9,24 @@ app.use(cors());
 app.use(express.json());
 
 let GLOBAL_CHAOS = false;
+let CHAOS_TARGET = null;
+let CHAOS_TYPE = null;
+
+const CHAOS_SCENARIOS = [
+    { target: '/api/auth/login', type: 'latency' },
+    { target: '/api/auth/login', type: 'crash' },
+    { target: '/api/cart', type: 'crash' },
+    { target: '/api/orders', type: 'latency' },
+    { target: '/api/orders', type: 'crash' }
+];
 
 app.post('/api/chaos', (req, res) => {
     GLOBAL_CHAOS = true;
-    console.log('💥 GLOBAL CHAOS INITIATED! Simulating 500 errors globally for 120s.');
+    const scenario = CHAOS_SCENARIOS[Math.floor(Math.random() * CHAOS_SCENARIOS.length)];
+    CHAOS_TARGET = scenario.target;
+    CHAOS_TYPE = scenario.type;
+
+    console.log(`💥 GLOBAL CHAOS INITIATED! First failure queued at: ${CHAOS_TARGET} (${CHAOS_TYPE})`);
     setTimeout(() => {
         GLOBAL_CHAOS = false;
         console.log('✅ Global Chaos Resolved.');
@@ -22,7 +36,19 @@ app.post('/api/chaos', (req, res) => {
 
 // Chaos Mode Middleware
 app.use((req, res, next) => {
-    const chaos = req.headers['x-chaos-trigger'] || (GLOBAL_CHAOS && req.path.startsWith('/api') && req.path !== '/api/chaos' ? 'crash' : null);
+    let chaos = req.headers['x-chaos-trigger'];
+
+    // Ignore fetching the cart on app load so the chaos isn't instantly consumed
+    const ignoreCartGet = req.path === '/api/cart' && req.method === 'GET';
+
+    if (!chaos && GLOBAL_CHAOS && req.path === CHAOS_TARGET && !ignoreCartGet) {
+        chaos = CHAOS_TYPE;
+        // Rotate to a new random scenario for the next time so the bot fails at different steps
+        const scenario = CHAOS_SCENARIOS[Math.floor(Math.random() * CHAOS_SCENARIOS.length)];
+        CHAOS_TARGET = scenario.target;
+        CHAOS_TYPE = scenario.type;
+        console.log(`\t🔄 Chaos hit! Rotating next target to: ${CHAOS_TARGET} (${CHAOS_TYPE})`);
+    }
 
     if (chaos === 'latency') {
         console.log('⚠️ Chaos Mode: Injecting 10s latency');

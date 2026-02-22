@@ -13,6 +13,12 @@ export default function App() {
   const [cart, setCart] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [globalError, setGlobalError] = useState(null)
+
+  const showError = (msg) => {
+    setGlobalError(msg)
+    setTimeout(() => setGlobalError(null), 5000)
+  }
 
   // Sync cart with backend on mount
   useEffect(() => {
@@ -22,9 +28,15 @@ export default function App() {
   const fetchCart = async () => {
     try {
       const data = await api.getCart()
-      setCart(data)
+      if (Array.isArray(data)) {
+        setCart(data)
+      } else {
+        setCart([])
+      }
     } catch (err) {
       console.error('Failed to fetch cart', err)
+      showError(err.message)
+      setCart([])
     }
   }
 
@@ -34,6 +46,7 @@ export default function App() {
       setCart(updatedCart)
     } catch (err) {
       console.error('Failed to add to cart', err)
+      showError(err.message)
     }
   }
 
@@ -52,11 +65,19 @@ export default function App() {
       setPage('success')
     } catch (err) {
       console.error('Checkout failed', err)
+      showError(err.message)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-gray-100 font-sans relative overflow-x-hidden">
+      {globalError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-600/95 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-bold z-50 shadow-2xl flex items-center gap-3 border border-red-500 max-w-[90vw]">
+          <span className="text-2xl isolate">🚨</span>
+          <span className="tracking-wide text-sm md:text-base leading-tight">System Error: {globalError}</span>
+        </div>
+      )}
+
       {page === 'login' && <LoginPage onLogin={() => setPage('catalog')} />}
 
       {page === 'catalog' && (
@@ -91,8 +112,12 @@ export default function App() {
           onCheckout={handleCheckout}
           onBack={() => setPage('catalog')}
           onUpdateQty={async (id, qty) => {
-            const updated = await api.updateCartQty(id, qty);
-            setCart(updated);
+            try {
+              const updated = await api.updateCartQty(id, qty);
+              setCart(updated);
+            } catch (err) {
+              showError(err.message);
+            }
           }}
         />
       )}

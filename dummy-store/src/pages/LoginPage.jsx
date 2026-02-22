@@ -12,14 +12,10 @@ export default function LoginPage({ onLogin }) {
         setLoading(true)
         setError('')
         try {
-            const result = await api.login(email, password)
-            if (result.success) {
-                onLogin()
-            } else {
-                setError('Invalid credentials')
-            }
+            await api.login(email, password)
+            onLogin()
         } catch (err) {
-            setError('Connection failed')
+            setError(err.message || 'Connection failed')
         } finally {
             setLoading(false)
         }
