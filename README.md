@@ -74,43 +74,63 @@ The following diagram illustrates the workflow of Synthetic-Eye:
    cd Synthetic-Eye
    ```
 
-2. Install dependencies for the frontend:
+2. Install dependencies for the Dashboard Frontend:
    ```bash
    cd frontend
    npm install
    ```
 
-3. Install dependencies for the backend:
+3. Install dependencies for the Monitoring Backend:
    ```bash
-   cd "monitoring backend/app"
+   cd "monitoring backend"
    pip install -r requirements.txt
    ```
 
-4. Set up the synthetic monitoring scripts:
+4. Install dependencies for the Dummy E-Commerce Store:
    ```bash
-   cd monitor
+   cd dummy-store
+   npm install
+   cd server
    npm install
    ```
 
-### Running the Applications
+5. Set up the Playwright Synthetic Bot:
+   ```bash
+   cd synthetic-bot
+   npm install
+   ```
 
-- **Frontend Dashboard**:
-  ```bash
-  cd frontend
-  npm run dev
-  ```
+### Running the Applications (Run in separate terminals)
 
-- **Backend Services**:
-  ```bash
-  cd "monitoring backend/app"
-  python main.py
-  ```
+1. **Dummy Store Backend API**:
+   ```bash
+   cd dummy-store/server
+   node index.js
+   ```
 
-- **Synthetic Monitoring**:
-  ```bash
-  cd monitor
-  node bot.js
-  ```
+2. **Dummy Store Frontend (React)**:
+   ```bash
+   cd dummy-store
+   npm run dev
+   ```
+
+3. **FastAPI Monitoring Backend**:
+   ```bash
+   cd "monitoring backend"
+   uvicorn app.main:app --reload --port 8000
+   ```
+
+4. **SRE Dashboard (React)**:
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+5. **Playwright Synthetic Bot**:
+   ```bash
+   cd synthetic-bot
+   node monitor.js
+   ```
 
 ---
 
