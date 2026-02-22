@@ -19,3 +19,5 @@ class BotTelemetry(BaseModel):
     error_stack: Optional[str] = None    
     screenshot_base64: Optional[str] = None
     trace_id: Optional[str] = None
+    region: Optional[str] = None
+    triage_advice: Optional[dict] = None

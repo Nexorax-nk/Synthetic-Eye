@@ -18,6 +18,26 @@ SLA_LATENCY_MAX = 2000.0
 def generate_incident_id():
     return f"INC-{random.randint(1000, 9999)}"
 
+def generate_triage_advice(payload: dict):
+    code = payload.get("http_status_code", 500)
+    flow = payload.get("flow_name", "Unknown Flow")
+    
+    if code >= 500:
+        return {
+            "action": f"Critical service degradation detected in {flow} (HTTP {code}). Automatically isolating failing edge nodes and preparing rollback of latest deployment.",
+            "runbook_url": "https://runbooks.thirdeye.internal/incident/5xx-fatal"
+        }
+    elif code >= 400:
+        return {
+            "action": f"Elevated client-side error rate in {flow} (HTTP {code}). Verify payload validation layers and authentication tokens.",
+            "runbook_url": "https://runbooks.thirdeye.internal/incident/4xx-client"
+        }
+    else:
+        return {
+            "action": f"Severe SLA latency breach in {flow} ({payload.get('total_latency_ms', 0)}ms). Analyze database query plans and check for network congestion.",
+            "runbook_url": "https://runbooks.thirdeye.internal/incident/latency-p99"
+        }
+
 def record_telemetry(payload: dict):
     global total_runs, successful_runs
     total_runs += 1
@@ -32,7 +52,8 @@ def record_telemetry(payload: dict):
     else:
         # Generate Enterprise Incident Data
         payload["incident_id"] = generate_incident_id()
-        payload["severity"] = "High" if payload["total_latency_ms"] > SLA_LATENCY_MAX else "Medium"
+        payload["severity"] = "High" if payload.get("total_latency_ms", 0) > SLA_LATENCY_MAX else "Medium"
+        payload["triage_advice"] = generate_triage_advice(payload)
         incident_logs.insert(0, payload)
 
     # 3. Save Time-Series Data for the Graph
